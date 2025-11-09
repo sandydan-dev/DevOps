@@ -1,0 +1,243 @@
+# Linux Command for DevOps
+
+# Enter in the root as admin
+sudo su -            : enter as root/admin user (super user do switch user -(root)
+
+ctrl + z             : Undo content
+ctrl + enter         : clear all terminal
+
+# cat                  : concatenate, cat.file.txt > view file content
+cat > file.txt       : create new file
+cat >> file.txt      : append new file or add new data in existing file
+
+
+# touch                : create an empty file
+touch index.js       : create a new file
+touch f1 f2 f3       : create multiple empty files
+touch -t 202511061329 file.txt : set timestamps of file (yyyy-mm-dd-hh-mm)
+touch dirA/dirB/dirC/myfile.txt  : create a file at the end only
+touch /root/dirA/innerFile.txt   : create a file in the directory
+
+# nano                 : Nano text editor, user friendly command line editor, easy text editor inside the terminal
+nano file.txt        : create or open file
+ctrl + o             : save changes
+ctrl + X             : exit editor, when exit auto save content
+ctrl + K             : cut line
+ctrl + U             : paste lilne
+
+# vi/vim             : vim (vi improved) text editor, a powerful cmd-line editor, used to create/edit text file
+vi file.txt          : open or create file or (vim file.txt)
+i                    : when inside vi editor type 'i' for insert content
+:                    : command mode to run commands like save or exit/quit
+:wq!                 : save and quit
+:w!                  : save file forcefully
+:q!                  : quit file forcefully
+
+# mkdir              : used to create director/folder
+mkdir folder1        : create single folder/directory
+mkdir folder1 folder2 folder2 : create multiple folders/directories
+mkdir -p parent/child/grandchild  : create nested (parent-child) directories
+
+# ls                 : show list of the current directory/working directory
+ls                   : show files and folders in the current directory
+ls -a                : show file including hidden file -a mean hidden files
+ls -l                : lists file in long format, show details like permissions/owner/group/size/date-time/filename
+
+pwd                  : to see current working (present working directory), means where I am now (directory)
+
+cd                   : to change the directory, move to another folder
+
+cd ..                : go back to previous directory
+cd ../../../         : direct jump to another directory
+
+tree                 : show files/folder in the tree like structure
+
+history              : shwo list of cmds you type in the terminal
+
+hostname             : show the name of the computer/server you are connected
+
+who                  : shows who logged in to the system (users)
+whoami               : show which user are currently connected or logged in as root
+
+# cp                 : cp means copy file/folder
+cp file1.txt file2.txt : copy file1 to file2 ( cp path(file1.txt) destination(file2.txt) )
+
+cp dirA/copy.txt dirC/dest.txt  : copy file from directory to another directory
+
+cp -r dirA dirC      : -r mean recursive, copy whole directory
+
+# mv                 : mv mean move or rename file and directories mv oldname.txt(path) newname.txt(destination)
+mv oldname.txt newname.txt : rename file
+
+mv file.txt dirA/dirB/  : move file inside the dirB
+
+mv folder1 dirA/dirB/dirC : move folder1 to inside the dirC
+
+# uname              : display system information
+uname                : show system name
+uname -a             : show system details info, Displays kernel name, version, system architecture, and more
+
+# which                : used to show fully path of executable cmd -- where that program is located on system
+which python           : show python location path
+which tree             : show tree location path
+which git              : show git location path
+
+sudo shutdown now      : is used to immediately shut down the computer
+
+# user management
+useradd <username>     : create a new user name on system
+cat /etc/passwd        : verify where user add
+
+# add password to user
+passwd <username>    : add password to user
+
+# go inside user, giving passwd
+su - sandeep            : swith user to user (sandeep)
+
+exit                    : exit user/any
+
+# user group management
+groupadd <group_name>    : create a group
+groupadd devops          : create group name with devops
+
+# see group name
+cat /etc/group           : see list of group create
+cat /etc/group | grep devops : see direct group name
+
+# add username to group
+gpasswd -a <username> <groupname>   : add user name to group -a means 'add'
+gpasswd -d <username> <groupname>   : delete username from group, -d means delete
+
+cat /etc/group            : see group with username
+cat /etc/group | grep devops    : see direct group with username
+
+# grep             : is used to search for text/pattern inside files or commands ouput
+grep "hello" file.txt   : search for word in a file.txt
+
+grep "error" *.log      : search in multiple files
+
+grep -i "hello" file.txt  : case-insensitive, where it capital letter or small
+
+grep -n "hello" file.txt  : show line number
+
+
+# scroll up and down data
+less /etc/passwd
+more /etc/passwd
+
+
+# head                    : show the beginning(top) part of the file, default show first 10 lines
+head /etc/passwd          : show data from to number of 10 list only
+head -n 5 /etc/passwd     : show data line number from top to 5, custom
+
+# tail                    : show the ending(bottom) part of the file, default show last 10 lines
+tail /etc/passwd          : show data from bottom to number 10 line by default
+tail -n 5 /etc/passwd     : show number of lines from bottom to number of 5 lines
+
+# system related cmds
+free -h                   : see ram and memory, -h means human readable(KB,MB,GB)
+
+lscpu                     : see cpu core
+
+# installing package for 'yum' amazon linux and 'apt' for debian based
+yum install tree -y       : install tree package with permission
+yum install git -y        : install git package
+yum install httpd -y      : install httpd web server
+yum install java  -y      : install java package
+
+
+apt install tree -y       : debian based package
+apt install apache2       : install dabian based package using apt
+
+
+# httpd package  : it is web server package/software, used to host a website or applications
+# default httpd directory to host website is /var/www/html and inside it index.html file main file
+go inside file from root
+cd /var/www/html
+
+default port is
+80  = for HTTP
+443 = for HTTPS
+22  = for ssh
+
+> install package httpd
+yum install httpd -y
+
+> remove package
+yum remove httpd
+
+> install git
+yum install git -y
+
+> see installed package list
+yum list installed
+
+> see perticular package in list
+yum list install | grep 'git'
+
+> to see which service is running or start the service
+- example : httpd
+
+service httpd start    : start httpd service
+service httpd stop     : stop httpd service
+service httpd status   : see status
+service httpd restart  : restart the httpd service
+service httpd reload   : reload the httpd service
+
+# systemctl (system control), it is the service cmd used to manage services in linux system.
+# advance version for above cmd
+
+systemctl start httpd   : start httpd service
+systemctl stop httpd    : stop httpd service
+systemctl status httpd  : see status
+systemctl restart httpd : restart httpd service
+system enable httpd     : enable service on boot, automatically starts server when the service restart
+system disable httpd    : disable service, stops it from auto-starting at boot
+
+# find command, is used to find folder and files of particular addresses
+find          : it give current file address including hidden files and folders
+
+find -type -f    : to find only files in current directory
+
+find -type -d    : find only directories inside current directory
+
+find / -type f -name <filename>  : to find the file name in system in rool folder
+
+find / -type d -name <directoryname> : to find the folder name in the root folder
+
+
+# short-link/soft-link/symbolic-link (shortcut) file/folder
+# ls = link   ,   -s = soft link
+
+ln -s /dirA     : by this cmd '/dirA' create short-link
+
+ln -s /var/www/html   : create shortlink
+
+ls -l       : to see softlink file
+
+
+# compressed files
+# tar, combine multiple files/folders into one file, tar does not compressed it only pack
+
+tar -cvf dirA.tar dirA    : it packed the file (cvf = create verbose file)
+
+# apply 'gz' on 'dirA.tar'
+gzip dirA.tar  : it will become 'dirA.tar.gz' file zip file
+
+# to extract tar file
+tar -xvf dirA.tar   : it will extract, and gives dirA directory
+
+# to apply at a time 'tar' and 'gz' on file
+tar -cvzf dirA.tar.gz dirA  : combination or 'tar' and 'gz'
+
+# to extract 'tar' + 'gz' file
+tar -xvzf dirA.tar.gz    : then it gives actual file 'dirA'
+
+# to remove gz file means unzip file
+gunzip dirA.tar.gz
+
+
+
+# permissions to root  or file or folder
+chmod 777 file.txt  : gives full permission read,write,update,delete
+chmod 444 root      : gives root permission

@@ -1,0 +1,175 @@
+# Git CMDs
+
+# first update system package
+
+yum update -y            : update all packages
+
+yum install git -y       : install git
+
+which git                : is shows where git package store like result is (/usr/bin/git) path
+
+git --version            : see git current version
+
+# Git configuration in local machine (MobaXterm/linux terminal)
+# setup name and email from local machine to remote location
+# it will match with your github account
+
+git config --global user.name "sandeep"                   : set name to accout
+git config --global user.email "sandydan.dev@gmail.com"   : set email to github account
+
+
+# it shows all Git Configuration settings currently active in environment
+
+git config --list         : shows also username and user email
+
+
+# Create a new empty Git repository in your current folder,
+# basically, it tell Git to start tracking changes here
+
+git init                  : initialize git
+
+# when create repo in githut it gives cmds, and install in local folder
+
+git remote add <git_link>    : it provide by git, just take from it and run in local git folder
+
+# default branch is 'master', to change in 'main'
+
+git branch -M main         : -M means rename to 'main'
+
+git status                : see status like tracked file , commited file
+
+# push files/folder in the git repo
+
+git push -u origin main      : it will push all tracked repo and store in remote location repo
+
+
+git add .                : it will add all file, by given dot(.) if file name have so type it
+
+git commit -m "add comments"   : -m means Message,add snapshot, every time commit, it will add comments for your pushable repo
+
+git show <commit-id>   : it show particular commited data
+
+git remote -v          : to verify connected repository or not
+
+git log           : it shows all commited data
+git log -1        : it show latest commited
+git log -2        : it show latest commited number of 2 commits
+
+# to see commited IDs and messages only in one line
+
+git log --oneline
+
+# to see particular text using 'grep' cmd, from entire logs
+
+git log --grep "text"   : shown content as 'text' from all logs
+
+git log --grep "Text" -i   : -i means case-insensitive, shown content whether it capital letter or small letter
+
+
+
+# Git branch cmds
+
+git branch        : local branch only, see branch list or current branch
+git branch -r     : -r means remote current branch
+
+git branch <branch_name>    : create a new branch (git branh newone)
+
+git checkout <branch_name>  : switch to new branch
+
+git merge <branch_name>     : merge branch
+
+git merge <branch_name> -m "message"  : -m message, to merge branch with message
+
+git branch -d <branch_name>    : -d means delete branch
+
+# Git branch to branch (pull/push) methods
+# when we do 'git pull'(remote-branch) and 'git push'(local-branch)
+# pull from remote to local branch files, branch to branch push/pull connections
+
+git pull origin main:test       : main is remote branch pull to local branch in test branch
+
+git push origin test:main       : test branch from local and push to remote branch
+
+git pull origin developer:main  : from remote branch main to pull file inside local branch developer
+
+# Restore
+
+git restore file.txt     : bring back the file from the last commit
+
+# Restore deleted file
+
+git checkout HEAD -- file.txt
+or
+git restore --source=HEAD file.txt
+
+
+# undo "git add" unstage a file
+
+git restore --staged file.txt   : restore if added with 'git add .'
+
+# undo last commit (if commited files)
+
+git reset --soft HEAD~1
+
+
+# Revert
+# using git revert instead of 'git reset', it is safer for team work cause it deoesnt delete history
+
+git revert <commit_id>
+
+# Create files
+
+touch file(1..10)
+
+# undo git push, if shared file on remote
+
+git reset --hard HEAD~1      : run this cmd to removed pushed file
+then
+git push origin main --force : after git reset(above) cmd then just run this cmd
+
+
+# Delete files
+
+git clean -n     : dry run, gives worning first
+
+git clean -f     : forcefully delete files, without permission
+
+
+# undo git pull, if accidently pulled files from remote directory
+
+git reset --hard HEAD@{1}     : it will remove pulled data from central repo
+
+
+# Git Tag
+# add tag name to remark commited id
+
+git tag -a <tag_name> -m "added tag message" <commited_id>
+
+
+git tag --oneline     : see logs and also see given tag name to commi
+
+git show <tag_name>   : search commit by tag_name
+or
+git tag               : see tag commit list
+
+git tag -d <tag_name> : delete tag_name from given commits
+
+
+# Git Clone
+# Git clone is the command used to copy existing from remote repository
+
+git clone <git_link>
+then  check after cloned
+git remote -v
+
+
+# Private Repository
+# cloning, push, pull so it ask for credentials, it always ask credentials
+# then take private repo 'ssh link' like git@github.com:<route>
+
+ssh-keygen               : first generate key, it will create id_rsa.pub(pulic key) and id_rsa (priavate key)
+ls -a                    : to see ssh file
+cat id_rsa.pub           : see data, and copy that public key data and paste to github location
+then clone repo with ssh link
+git clone <ssh_link>     : when clone it will ask for email and passwd/token anyone passwd or token
+

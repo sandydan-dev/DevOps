@@ -1,0 +1,137 @@
+# what is docker?
+- Docker is a platform/tool that run your application in isolated environment(container)
+- Ensures app work the same in everywhere (laptop, server, cloud)
+
+# Docker Image ?
+- A blueprint of your application that consist (os, libraries, dependencies, code, scripts,etc...)
+
+# What is container?
+- A running instance of an image, container like a machine which is creatd from docker image.
+
+# What is Dockerfile
+- A text/script with instruction to build own image
+
+# What is docker-compose file
+- A tool to run multiple containers togather
+- Ex. : run node.js + mongodb both runs in separate containers, but linked togather
+
+-----------------------------------------------------------------------------------------------
+
+- Docker command start with "docker"
+> docker = initial cmd for docker
+> run    = create/run container
+> -it    = interactive terminal mode
+> bin/bash = shell cmd to run all files
+
+# update packages first
+yum update -y
+
+# install docker
+yum install docker -y
+
+# see version of docker
+docker --version
+
+# see where docker store in directory location
+which docker               : result shows - /usr/bin/docker
+
+# login with docker hub (registry)
+docker login               : it will ask username and password of your docker hub
+
+# logout from docker hub
+docker logout
+
+# after install start docker service
+service docker start       : start docker
+or
+systemctl start docker     : start docker
+
+# after start service enable docker to do auto-start
+systemctl enable docker    : auto-start docker
+
+# build in image, pull docker image from docker-registry
+docker pull node / nginx / mysql   : pull any image or we can create our own image
+
+# or create own docker file with script
+docker run it myapp
+
+-----------------------------------------------------------------------
+
+# create own docker file
+vi dockerfile              : dockerfile, its file name
+
+# inside this file write scrip, a simple script
+# start script  -------
+
+FROM node:18
+WORKDIR /app
+COPY . .
+CMD ["node", "index.js"]
+
+# end script ---------
+
+# after creating own Dockerfile, first build image
+docker build -t myapp .       : -t means tag, myapp is tag name of image, and dot(.) means current directory
+
+docker ps                     : showing running containers
+
+docker ps -a                  : -a means all showing all runing or exited containers
+
+docker images                 : see docker images list
+or
+docker image ls               : also see image list
+
+docker search <image_name>    : search additional images list based on image like node,ubuntun,nginx
+
+docker rename <container_name> myowname   : rename container old_name to new_name
+
+docker run -it myapp /bin/bash : go inside container (with interrative terminal)
+
+docker images                 : see build image
+cat /etc/passwrd              : testing purpose         - inside container
+cat /etc/os-release           : just for testing purpose- inside container
+exit                          : exit cmd from exit from container
+
+
+# pull docker image from registry, by default it take :latest version
+
+docker pull ubuntu
+docker pull node
+docker pull nginx
+
+# pickup any one
+
+
+# create container based on image, and give container name
+
+# --name means put own_name, -it means interactive terminal, /bin/bash means shell command(like ls, cat, cd)
+docker run --name <container_name> -it ubuntu /bin/bash
+
+# if container stopped, then start using conatiner_name or container_id
+docker start <container_id>  : start container, run in background
+
+# In -it interactive mode, when we want to go inside, need first start, then go inside container
+docker attach <container_name>  : go inside container
+
+docker stop <container_id>   : stop container
+
+docker rm <container_name> or <container_id>  : remove container
+
+docker rmi <image_name>     : remote base image
+
+
+# create image from container with actual image
+docker commit <container_name> <own_img_name> : create image from container
+docker commit u_cont1 myimg                   : create image from container
+
+# after creating image from container, then create container from own image,
+docker run -it --name <container_name> <image_name> : create container with image
+docker run -it --name own_cont1 myimg               : create conatiner from 'myimg' image, it will redirect to container
+
+
+# there 3 way to get image
+# 1 : from registry,   pull image from docker registry/hub
+# 2 : from Dockerfile, create image from own code base with Dockerfile
+# 3 : from container,  using 'commit' create imge from container
+
+
