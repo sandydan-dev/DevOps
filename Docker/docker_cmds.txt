@@ -133,5 +133,32 @@ docker run -it --name own_cont1 myimg               : create conatiner from 'myi
 # 1 : from registry,   pull image from docker registry/hub
 # 2 : from Dockerfile, create image from own code base with Dockerfile
 # 3 : from container,  using 'commit' create imge from container
+------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
