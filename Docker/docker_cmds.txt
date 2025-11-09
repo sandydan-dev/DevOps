@@ -136,8 +136,87 @@ docker run -it --name own_cont1 myimg               : create conatiner from 'myi
 ------------------------------------------------------------------------------
 
 
+# Docker-compose yml file
+
+# creae docker-compose.yml file to run multiple container at a time
+vi docker-compose.yml              : file name for docker compose
+
+# inside this file
+# start script -------------
+version: "3"
+services:
+  web:
+    image: node:18           # image name from docker registry
+    working_dir: /app        # all data will put here, called working directory
+    volumes:
+      - .:/app               # inside contaiiner created this app dir
+    command: ["bash", "-c", "echo 'Running Node container...' && sleep infinity"]
+    ports:                   # host port : container port
+      - "3000:3000"
+    depends_on:   # connects with 'db' service means depend
+      - db
+
+  db:                        # another service for database
+    image: mongo:latest      # image name from docker registry
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin        # mongo username
+      - MONGO_INITDB_ROOT_PASSWORD=sandeep@12   # mongo password
+    ports:                                      # mongodb runs on port
+      - "27017:27017"
+
+# end script -----------------
+
+# this file defined two service like web and db
+> web : Node container 
+> db  : db container
+
+# start container with interactive mode 
+docker-compose up
+
+# start container with detach mode
+docker-compose up -d
+
+> result will be
+web_1 | node container running
+db_1  | mongodb container running
+
+# see docker containers
+docker-compose ps         : check running container
+or  
+docker-compose ps -a      : check stop and running container
+
+# to go inside the container
+docker exec -it <container_name> bash   : go inside container
+
+exit                       : exit from container
+
+docker-compose down        : stop and remove container
+
+# to delete container first stop
+docker-compose stop            : stop running containers
+then remove/delete container
+docker-compose down            : removed and delete containers
+
+--------------------------------------------------------------------
+
+# create custom Dockefile
+# by default docker file name is 'Dockerfile"
+# we can create custom docker file name
+
+vi MyDockerfile
+
+FROM ubuntu
+RUN apt update -y
+RUN apt install tree -y
+RUN echo "Hello custom image" > /tmp/testfile
+
+# then create image from custom docker file
+docker build -f MyDockerfile -t cut_img .      : -f means custom file for Dockerfile and -t means image tag name, dot(.) means current directory
+
+docker run -it  --name cont1 cust_image /bin/bash     : go inside the container, and container name is "cont1"
 
 
+-------------------------------------------------------------------------------------------------------------------
 
 
 
