@@ -216,9 +216,40 @@ docker build -f MyDockerfile -t cut_img .      : -f means custom file for Docker
 docker run -it  --name cont1 cust_image /bin/bash     : go inside the container, and container name is "cont1"
 
 
--------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------
+
+# Docker volumes
+
+# What is docker volumes, 
+> volumes is a directory in side the container, and also every single directory is a volume
+> containers have so many directories in the on particular  directory declare as volume
+
+> and volume can share with other containers and when share with others containers. If have some directory in another container with same name
+
+vi MyDocVolume          : custome docker file name
+
+# inside file, create volume inside the container
+FROM ubuntu
+VOLUME ["/data"]
+---- end ---
+
+# create image from custom file 
+docker build -f MyDocVolume -t cust_img .    : this cmd will build image from custom docker file
 
 
+# create container
+docker run -it --name mycont1 my_img /bin/bash
+
+# share volume data to another container
+docker run -it --name <container_name> --volumes-from <old_container_name> <image> /bin/bash
+docker run -it --name myvolcont --volume-from volcont volimg /bin/bash
+ 
+
+# create a volume/directory in container while creating container
+docker run -it --name <container_name> -v /sai ubuntu /bin/bash
+
+# to check volume which have in container
+docker ispect <container_name>
 
 
 
