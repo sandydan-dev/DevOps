@@ -287,7 +287,7 @@ for x in fruits:
 
 print(newlist)
 
-
+ 
 # With list comprehension you can do all that with only one line of code:
 # The Syntax
 # newlist = [expression for item in iterable if condition == True]
