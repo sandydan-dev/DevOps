@@ -1,20 +1,17 @@
 version: "3"
 services:
-  web:
-    image: node:18           # image name from docker registry
-    working_dir: /app        # all data will put here, called working directory
-    volumes:
-      - .:/app               # inside contaiiner created this app dir
-    command: ["bash", "-c", "echo 'Running Node container...' && sleep infinity"]
-    ports:                   # host port : container port
-      - "3000:3000"
-    depends_on:   # connects with 'db' service means depend
-      - db
+  one:
+    image: ubuntu
+    command: /bin/bash -c "while true; do echo Hello One container; sleep 5; done"
+    
+    deploy:
+      replicas: 4
+    restart: always
 
-  db:                        # another service for database
-    image: mongo:latest      # image name from docker registry
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=admin        # mongo username
-      - MONGO_INITDB_ROOT_PASSWORD=sandeep@12   # mongo password
-    ports:                                      # mongodb runs on port
-      - "27017:27017"
+  two:
+    image: ubuntu
+    command: /bin/bash -c "while true; do echo Hello Two container; sleep 5; done"
+    
+    deploy:
+      replicas: 3
+    restart: always

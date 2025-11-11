@@ -1,0 +1,172 @@
+# Docker port mapping
+
+# Docker port mapping means, connecting a part on your host machin (your compurter or server) to a port inside the docker container -- 
+# so you can access application running inside containers from outside.
+
+we server packages
+
+> ubuntu    - apache2 (web server)
+> REHL      - httpd  (web server)
+
+- containers have only private ip no have public ip
+- so to access website by port mapping in docker, there is onlyway to access web app, they have only ports.
+
+- Base machine have public IP (it provide to customers)
+
+- To run container in detach mode (-td). 
+- It means, when creating container it will not redirect to the container, does not go inside container in detach mode, but it through to the  container root and still running the container continuously, while in detach mode
+
+- by default container port is 80
+
+cmd: docker run -td --name <container_name> -p <host_port>:<container_port> <image> <cmd_accsss_in_container>
+
+docker run -td  --name webcont1 -p 8080:80 ubuntu /bin/bash
+
+- 8080 port for base machie(host machine) to map, container port is :80 which is by default for container, so it means we need to open machine port
+
+- to see docker ports
+
+docker port <container_name>
+
+> result will be like:
+80/tcp -> 0.0.0.0:8080
+80/tcp -> [::]:8080
+
+
+# to go inside container if detach mode
+
+docker exec -it web1 /bin/bash
+
+> then, if you go inside container, if have (ubuntu) linux, then update container first to install any package 
+ap update -y
+
+> then install apache2 server package
+apt install apache2 -y
+
+
+# what is apache2 server?
+> apache2 is web server, it commonly refere to as "apache2" server, it is open source web server
+
+> apache2 is a web server software that handle HTTP request and serves web content
+
+> It is a port of LAMP (Linux, Apache, MySQL, Php), often use to host website and apis.
+
+> when apache2 installed, to see which main file for web content to serves in "/var/www/html"
+
+which apache2
+
+retsult will be
+/usr/sbin/apache2   # path 
+
+go to that folder 
+cd /var/www/html
+
+> inside this folder it will run the code for web content, only on this folder
+see index.html file
+cmd : ls
+
+> then start the apache2 service
+cmd: service apache2 start
+
+
+> Port is not open yet, so start first 
+> go to instance
+> security group
+> inbound rule
+> type: custom TCP
+> port range : anywhere
+> save rule 
+> start instance
+
+> then take instance public IP from aws 
+ip:8080  # paste into the browser
+
+
+
+# create 2nd container in different port
+like  -p 8081:80
+
+cmd: docker run -id --name web2 -p 8081:80 ubuntu /bin/bash
+
+cmd: docker exec -it web2 /bin/bash
+
+cmd: apt update -y
+cmd: apt install apache2 -y
+cmd: cd /var/www/html
+cmd: service apache2 start
+
+> go inside aws instance of security group
+change the custom port range like
+8080-8081   # any range
+
+take instance public IP
+ip:8081   # paste into browser
+
+
+# create a Dockerfile (custom docker file 'MyDocPort')
+cmd: vi MyDocPort       # custom Dockerfile
+# inside this file write this script cmd
+
+FROM ubuntu
+RUN apt update -y
+RUN apt install apache2 -y
+CMD ["apach2ctl", "-D", "FOREGROUND"]
+
+:wq!      # exit from file
+
+# then create image with this custom Docker file
+cmd: docker build -f MyDocPort -t portimg .
+
+# then create container 
+cmd: docker run -td --name web3 ubuntu /bin/bash
+
+# or 
+
+> use volume with port mapping so then give fully access 
+cmd: chmod -R 777 /root     # give permission as root
+
+cmd: docker -td --name web3 -v /root:/var/www/html -p 8082:80 portimg /bin/bash
+
+cmd: docker exec -it web3 /bin/bash
+
+cmd: cd /var/www/html       : see result 
+
+cmd: service apach2 start
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

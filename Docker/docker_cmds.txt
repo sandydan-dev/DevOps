@@ -254,6 +254,47 @@ docker ispect <container_name>
 
 
 
+# see docker compose logs
+docker-compose logs -f    # -f means live output, see all containers data
+
+# see perticular data log of container
+docker-compose logs -f <container_name>    # container name which given inside the script service
+
+
+
+# scale container inside single container
+# it will scale the container and also create container for single container
+docker-compose up d --scale one=3
+
+# scale container more than one
+docker-compose up -d --scale one=3 --scale two=4
+
+
+
+# Create replicas
+# it will create conainer replicas, if we loose any conainer it will crate replicas
+> inside script, add a small data/script in every below container
+
+version: "3"
+services:
+  
+  one:
+    image: ubuntu
+    command: /bin/bash "while true; do echo "hello world one; sleep 4; done"
+    deploy:
+      replicas: 4
+    restart: always
+
+  two:
+    image: ubuntu
+    command: /bin/bash "while true; do echo "Hello two; sleep 4; done"
+
+:wq!    # exit from script
+
+cmd : docker-compose up -d   # create container in detach mode
+
+# to go inside perticular container 
+cmd: docker exec -it <container_name> bash
 
 
 
