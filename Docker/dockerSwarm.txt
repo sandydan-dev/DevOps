@@ -1,0 +1,88 @@
+# Docker Swarm
+
+# If we want to manage multiple containers on multiple machines, than we use "Docker Swarm".
+                              (server/manager/leader)
+                          +---------------------------+
+                          |     MANAGER NODE (Leader) |
+                          |---------------------------|
+                          |  • Orchestrates Swarm     |
+                          |  • Deploys Services       |
+                          |  • Monitors Health        |
+                          +-------------+-------------+
+                                        |
+                                        |
+                  -------------------------------------------------
+                  |                        |                        |
+      +--------------------+    +--------------------+    +--------------------+
+      |  WORKER NODE 1     |    |  WORKER NODE 2     |    |  WORKER NODE 3     |
+      |--------------------|    |--------------------|    |--------------------|
+      |  Machine: swarm-w1 |    |  Machine: swarm-w2 |    |  Machine: swarm-w3 |
+      |                    |    |                    |    |                    |
+      |  +--------------+  |    |  +--------------+  |    |  +--------------+  |
+      |  | Container:   |  |    |  | Container:   |  |    |  | Container:   |  |
+      |  | web_service  |  |    |  | api_service  |  |    |  | db_service   |  |
+      |  +--------------+  |    |  +--------------+  |    |  +--------------+  |
+      |  +--------------+  |    |  +--------------+  |    |  +--------------+  |
+      |  | Container:   |  |    |  | Container:   |  |    |  | Container:   |  |
+      |  | cache_redis  |  |    |  | worker_app   |  |    |  | logger_app   |  |
+      |  +--------------+  |    |  +--------------+  |    |  +--------------+  |
+      +--------------------+    +--------------------+    +--------------------+
+
+                             <=== Overlay Network ===>
+                        (Allows containers to communicate across nodes)
+
+
+
+# Manager Node: controls and manages the entire swarm (creates service, deploy tasks, monitor status).
+
+# Worker Node: run containers (the actual tasks).
+
+# Overlay Network: allow all containers across machine to communicate seamlessly. 
+
+
+> It means server is main part of swarm orchestration, which manage clients/nodes by giving command to server.
+> Auto management of containers.
+> If some container crash, it will create automatically in place of (healing container, we can scale or descrease container).
+> vesioning means roll back
+
+# cluster means, Group of multiple things called 'cluster'
+
+# Go to AWS, create instace
+> create 4 instance, and name them like
+- 1 : leader/manager/server
+- 2 : Node-1
+- 3 : Node-2
+- 4 : Node-3
+
+> and add extra group port 2377 for all instance (docker swarm) 
+- Port 2377/tcp : used for Docker Swarm cluster management communication (only between swarm manager and workers).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
