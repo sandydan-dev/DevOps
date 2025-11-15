@@ -1,0 +1,91 @@
+# What is Ansible 
+> Ansible is an open-source automation tool to manage services, deploy applications, and automate IT tasks -- without installing any agents on the target machines. 
+
+> It is use ssh connection. 
+
+# --------  Uses of Ansible  ---------- #
+
+# 1: Configuration Management
+- install packages
+- manage files
+- configure services (like nginx, apache, mysql)
+
+Example: configure 100 servers exactly the same way with one playbook
+
+# 2: Application Development
+- automate code deployment
+- manage version releases
+- zero-downtime deployments
+
+# 3: Provisioning
+- Create servers using clouds API's (AWS, AZURE, GCIP)
+- configure them automatically after creation
+
+# 4: Orchestration
+- coordinate task in sequence
+- Example: start DB > then backend > then frontend
+
+# 5: Continuous Delivery / CI/CD 
+- used in pipelines to deploy and configure systems.
+
+# 6: Security automation
+- apply security patches 
+- update firewall rules 
+- enforce compilance rules
+
+# 7: Insfrastructure as Code (IaC)
+- your instrastructure configuration is stored in YAML code
+- easy to share, version control, and audit. 
+
+# ---------------     ---------------- #
+
+
+# ----------- Key Features of Ansible ----------- #
+
+# 1: Agentless
+> no need to install agents on target server.
+> uses ssh by default -- simple and secure.
+
+
+# 2: Written in YAML (Ansible Playbook)
+> easy to read
+> easy to write
+
+
+# 3: Idempotent
+> Running the same playbook multiple times will not change the system if it is already in the desired state.
+
+
+# 4: Extensible Modules
+> Ansible has thousands of built-in modules... 
+- yum, apt
+- service
+- copy, templates 
+- docker, k8s, aws, azure 
+
+
+# 5: Cross platform  works on..
+> Linux
+> Windows
+> Network Devices (Cisco, Jupiter)
+> Cloud (AWS, AZURE, GCP)
+> Containers (Docker, Kubernetes)
+
+
+# 6: Push-based model
+> You run Ansible from a control code -- it pushes configuration to servers. 
+> no agent pulling configs.
+
+
+# 7: Inventory Management 
+> All servers(hosts) are stored in a simple INI or YAML files
+- inside file 
+  [web]
+   web1
+   web2
+
+  [db] 
+   db1
+
+
+   
