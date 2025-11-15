@@ -88,4 +88,232 @@ Example: configure 100 servers exactly the same way with one playbook
    db1
 
 
-   
+# -------------------       --------------------- #
+
+
+# --------- Ansible Base Setup --------------- #
+
+> Create AWS Instance (amazon-linux)  : 3 instance created
+- name instances
+  1: Ansible-Server 
+  2: Ansible-Node1
+  3: Ansible-Node2
+
+  > launch instance on MobaXterm 
+                      Node1
+   Ansible-server -->
+                      Node2
+
+
+> Anisble package only install on Ansible-Server
+cmd: yum install ansible -y
+
+cmd: ansible --version     # see  ansible current version 
+
+cmd: which ansible         # see where anible package installed in the patches
+result: /usr/bin/ansible 
+
+
+# Manual way to manage/access other machines 
+
+> How to ue Ansible as a normal user. 
+- create user in all machines/instances 
+- name as "asnadmin"(user_name) created by root admin 
+  (user to user connection happens)
+
+> Multiply execution in Mobaxterm ☑ 
+- add common user in all machines 
+cmd: useradd ansadmin     # ansadmin is common user in all machines 
+
+- add possword to "ansadmin" in all machines 
+cmd: passwd ansadmin   # gives common passwd to common user 
+
+- switch to user which added in all 
+cmd: su - ansadmin    # all machines/nodes 
+cmd: exit             # out from user path 
+
+# as root
+- playbook content transfer will be throw ssh 
+- gives "sudo" privileged to "ansadmin" which can handle user.
+
+- How to give "sudo" privileged to a user there is a file anme "sudoers" and only root user (privileged user) can open   that file
+
+- In "sudoers" file root user can add new user (common user can ) in the file automatically
+- You must open "visudo" on all machines (all instances) not only the main server 
+- this file connot allow multiple users to edit at a time, only root/main user can do this thing only 
+cmd: visudo     # do in all instances 
+
+- it open nano editor see and add for all users as common user 
+paste it : ansdmin  ALL=(ALL)     NOPASSWD:(ALL)
+cmd: ctrl X + Y    # same and exit 
+
+> Now ansadmin (user) got privileged
+- switch to user as "ansadmin" (main server/instance only)
+cmd: su - ansadmin 
+
+> Add "sudo" before all cmd to give permission 
+> for test : do it only on main server
+cmd: sudo yum install tree -Y
+cmd: exit     # come out from user 
+
+# Set up ssh connection (all machines)
+- by default ssh with password. 
+- established ssh connection go inside the file 
+
+cmd: vi /etc/ssh/sshd_config      # in all machines open ssh 
+
+  > inside this file just modify authentication to "yes" to give permission without any password 
+  > PasswordAuthentication  yes             # make "no" to "yes"
+
+# Now reload the service sshd, 
+cmd: service sshd reload       # in all machines 
+- now one machine can communicate another machines. 
+
+# go as main user only for now
+cmd: su - ansadmin 
+result: [ansadmin@ip-172-31-23-171 ~]$
+
+- and connect main machine to other machines like "root@ip-172-31-23-217" and other machines too 
+cmd: ssh <user_name@ip>
+cmd: ssh ansadmin@ip-172-31-23-217
+
+- just add "ansadmin" then @node_root_ip   # every node IP 
+
+- after this provide common "password"=(ansadmin) 
+- after provide password it throw to there machines directly from the main server
+
+- whenever, if we want to go inside the node it ask everytime password (too much headache)
+- we can remove password, that call password less ssh (trust relation)
+- so we need to generate ssh key in the main server 
+- this works user to user not m/c to m/c 
+
+> in the ansadmin@<ip> (main server generate sshkey)
+( [ansadmin@ip-172-31-23-171 .ssh]$  ) main (user server)
+cmd: ssh-keygen   # it generate public and private key 
+cmd: cd .ssh      # change directory
+cmd: ls           # see list directory
+
+> user friendly cmd to copy key to node 
+> this cmd will copy public key in node 
+cmd: ssh-copy-id <node1@ip>
+cmd: ssh-copy-id <node2@ip>
+
+cmd: ssh-copy-id ansadmin@ip-172-31-23-217
+> ask password 
+cmd: ssh-copy-id ansadmin@ip-172-31-24-217
+> ask passwrod 
+
+- this will ask password one time 
+
+> now enter in the node without password 
+cmd: ssh ansadmin@<node_ip>
+cmd: ssh ansadmin@ip-172-31-23-217
+cmd: exit          # out from the node 
+
+
+# ------------   Create common user ----------- #
+
+> All operation do as ansadmin (privileged user) main server/machine 
+> login users in all machines / including nodes 
+cmd: su - ansadmin   
+
+# Push configuration in nodes (root user)
+- In server there is file called "host" file that file we called Inventory file, 
+- In that file we have to mension in that nodes information
+- host have private_IP and private DNS
+
+> See where host is located in the machine (main server)
+cmd: cd /etc/ansible 
+result : roles        # default directory shows no 'host' file 
+
+- create hosts file (Inventory file)
+cmd: sudo vi hosts       
+- inside this file we have to mension private IP address or private DNS of nodes 
+
+file hosts:
+[webservers]          # group name in the bracket
+<node_ip_address>   
+ip-172-31-24-217      # node 1
+ip-172-31-24-217      # node 2   
+
+cmd: esc :wq!         # exit from file 
+
+> in hosts file gives group_name in bracket and below add node_IP address 
+- the hosts file we called "playbook" file.
+        +-------------------+
+        |   Ansible Server  |
+        |   (Main Control)  |
+        +---------+---------+
+                  |
+        -----------------------
+        |         |           |
+   +----v----+ +--v-----+ +---v----+
+   | Node 1  | | Node 2 | | Node 3 |
+   +---------+ +--------+ +---------+
+
+
+#  if I use keyword "ALL" in hosts machine, it will work on all node machines (host file)
+- If I give specific group_name in hosts file and add specific node ip to that group_name,
+  so it will run only on that specific group_name
+
+- we can create group_name more than one
+- 1: [webserver]
+ip-172-31-24-217      # node 1
+ip-172-31-24-217      # node 2   
+
+- 2: [dbserver]
+ip-172-31-24-217      # node 1
+ip-172-31-24-217      # node 2   
+
+- 3: [apiserver]
+ip-172-31-24-217      # node 1
+ip-172-31-24-217      # node 2   
+
+- 4: [backendserver]
+ip-172-31-24-217      # node 1
+ip-172-31-24-217      # node 2   
+
+- 5: [frontend]
+ip-172-31-24-217      # node 1
+ip-172-31-24-217      # node 2   
+
+
+- Inside the main server, is recognising the Inventory file in nodes or not 
+
+- go as root user (ansadmin)
+cmd: cd 
+
+# in the main server (user)
+ex: [ansadmin@ip-172-31-23-171 ~]$
+
+# commands to run ansible playbooks 
+
+cmd: ansible all -m ping 
+
+- all : it means all node each and every node information in Inventory file
+- -m  : means module, which command to run 
+- ping : connection with nodes server 
+
+> if there is showing warning python related to inside Inventory file 
+cmd: cd /etc/ansible
+
+- create file 
+cmd: sudo vi ansible.cfg 
+- inside this file add this line or script
+[default]
+interpreter_python=auto_silent
+
+cmd: esc : wq!    # exit from file 
+
+- then run again cmd 
+cmd: ansible all -m ping 
+
+result: it will not showing the python interpreter related information 
+
+# to see how many host(nodes) / groups  relate list 
+cmd: ansible all --list-hosts     # shows host related list 
+- all : means host in Inventory 
+- [group_name]  : or we can add group_name instead of all to see perticular group nodes 
+
+cmd: ansible webserver --list-hosts    # show only group related list 
+

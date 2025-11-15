@@ -1,0 +1,121 @@
+# Ansible Ad-Hoc command modules
+cmd syntax : ansible <hosts> -m <module_name>
+
+# ----------------------------------------------------------------------
+
+✅ 1. ping
+Purpose: Test SSH connection to nodes
+Example: ansible all -m ping
+# ----------------------------------------------------------------------
+
+✅ 2. command
+Purpose: Run simple shell commands (no pipes, no redirects)
+Example: ansible all -m command -a "hostname"
+# ----------------------------------------------------------------------
+
+✅ 3. shell
+Purpose: Run shell commands (supports pipes, loops, redirects)
+Example: ansible all -m shell -a "cat /etc/os-release | grep NAME"
+# ----------------------------------------------------------------------
+
+✅ 4. yum (Amazon Linux / RHEL / CentOS)
+Purpose: Install/remove/update packages
+Example: ansible all -m yum -a "name=git state=present"
+# ----------------------------------------------------------------------
+
+✅ 5. apt (Ubuntu / Debian)
+Purpose: Install/remove/update packages
+Example: ansible all -m apt -a "name=curl state=present update_cache=yes"
+# ----------------------------------------------------------------------
+
+✅ 6. service
+Purpose: Start/stop/restart services
+Example: ansible all -m service -a "name=httpd state=started"
+# ----------------------------------------------------------------------
+
+✅ 7. file
+Purpose: Create files/dirs & set permissions
+Example: ansible all -m file -a "path=/tmp/myfolder state=directory"
+# ----------------------------------------------------------------------
+
+✅ 8. copy
+Purpose: Copy files from control → nodes
+Example: ansible all -m copy -a "src=/tmp/a.txt dest=/tmp/a.txt"
+# ----------------------------------------------------------------------
+
+✅ 9. fetch
+Purpose: Copy files from nodes → control node
+Example: ansible all -m fetch -a "src=/etc/hosts dest=/tmp"
+# ----------------------------------------------------------------------
+
+✅ 10. user
+Purpose: Create or remove system users
+Example: ansible all -m user -a "name=devops state=present"
+# ----------------------------------------------------------------------
+
+✅ 11. group
+Purpose: Create or remove groups
+Example: ansible all -m group -a "name=developers state=present"
+# ----------------------------------------------------------------------
+
+✅ 12. unarchive
+Purpose: Extract tar/zip files on nodes
+Example:ansible all -m unarchive -a "src=file.tar.gz dest=/opt"
+# ----------------------------------------------------------------------
+
+| Module      | Short Purpose       | Example                      |
+| ----------- | ------------------- | ---------------------------- |
+| **ping**    | Test SSH            | `ansible all -m ping`        |
+| **command** | Run simple commands | `"hostname"`                 |
+| **shell**   | Run shell commands  | `"cat file"`                 |
+| **yum/apt** | Install packages    | `"name=git state=present"`   |
+| **service** | Manage services     | `"name=httpd state=started"` |
+| **copy**    | Copy files          | `"src=/tmp/a dest=/tmp/a"`   |
+| **file**    | Create files/dirs   | `"state=directory"`          |
+| **user**    | Create users        | `"name=devops"`              |
+
+# ---------------------------------------------------------------------- #
+
+
+🎯 It tests the connection between the Ansible Server and all nodes.
+cmd: ansible all -m ping
+
+🎯 to see how many host(nodes) / groups  relate list 
+cmd: ansible all --list-hosts     # shows host related list 
+- all : means host in Inventory 
+- [group_name]  : or we can add group_name instead of all to see perticular group nodes 
+- -m  : means module 
+- ping  : ansible ping module, NOT network ping, it checks if Ansible can cannects. 
+
+# ----------------------------------------------------------------------
+
+🎯 used to show which hosts Ansible
+cmd: ansible all --list-hosts
+
+> ansible
+Runs Ansible ad-hoc command.
+
+> all
+Means all hosts in the inventory file.
+
+ # --list-hosts
+Do not run anything —
+just list which hosts will be targeted.
+
+# ----------------------------------------------------------------------
+
+🎯
+
+🎯
+
+🎯
+
+🎯
+
+🎯
+
+🎯
+
+🎯
+
+🎯
