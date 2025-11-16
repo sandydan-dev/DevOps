@@ -89,6 +89,9 @@ Example: configure 100 servers exactly the same way with one playbook
 
 
 # -------------------       --------------------- #
+# -------------------       --------------------- #
+# -------------------       --------------------- #
+
 
 
 # --------- Ansible Base Setup --------------- #
@@ -224,7 +227,7 @@ cmd: su - ansadmin
 
 > See where host is located in the machine (main server)
 cmd: cd /etc/ansible 
-result : roles        # default directory shows no 'host' file 
+result : roles        # default directory shows no 'hosts' file 
 
 - create hosts file (Inventory file)
 cmd: sudo vi hosts       
@@ -300,7 +303,7 @@ cmd: cd /etc/ansible
 - create file 
 cmd: sudo vi ansible.cfg 
 - inside this file add this line or script
-[default]
+[defaults]
 interpreter_python=auto_silent
 
 cmd: esc : wq!    # exit from file 
@@ -310,10 +313,49 @@ cmd: ansible all -m ping
 
 result: it will not showing the python interpreter related information 
 
-# to see how many host(nodes) / groups  relate list 
+> this cmd, test the connection between Ansible server and all nodes 
+> to see how many host(nodes) / groups  relate list 
 cmd: ansible all --list-hosts     # shows host related list 
 - all : means host in Inventory 
 - [group_name]  : or we can add group_name instead of all to see perticular group nodes 
+- -m  : means module 
+- ping  : ansible ping module, NOT network ping, it checks if Ansible can cannects. 
 
+# just list which hosts will be targeted.
 cmd: ansible webserver --list-hosts    # show only group related list 
 
+# ================================================================= #
+# ================================================================= #
+# ================================================================= #
+
+
+🎯 What is Ad-hoc and playbook 
+> Ad-hoc : one time command (do it now)
+ex : ansible all -m command -a "ls"
+- run "ls" cmd in every nodes 
+
+> playbook : saved instruction (blueprint for state)
+
+> Ad-hoc - Iperative way (by commands)
+> playbook - declarative way (script)
+
+
+# A "modules" ia a small program, ansible sends to remote machine to do a specific work 
+
+> each module knows how to do one type of work like: 
+- install a packages
+- copy a file 
+- run a command 
+- message a service 
+- create a user    
+- etc 
+
+> Module names 
+1 : ping 
+2 : command 
+3 : shell 
+4 : yum/apt 
+5 : service 
+6 : file 
+7 : copy 
+8 : user 

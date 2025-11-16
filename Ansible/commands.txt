@@ -1,6 +1,8 @@
 # Ansible Ad-Hoc command modules
 cmd syntax : ansible <hosts> -m <module_name>
 
+Fix: Use --become (or -b)  # at this end of the cmd like (-b)
+
 # ----------------------------------------------------------------------
 
 ✅ 1. ping
@@ -11,6 +13,7 @@ Example: ansible all -m ping
 ✅ 2. command
 Purpose: Run simple shell commands (no pipes, no redirects)
 Example: ansible all -m command -a "hostname"
+-  -a : means arguments passwd in the end
 # ----------------------------------------------------------------------
 
 ✅ 3. shell
@@ -104,15 +107,29 @@ just list which hosts will be targeted.
 
 # ----------------------------------------------------------------------
 
-🎯
+🎯 see all hosts list with groups
+cmd: ansible all --list-hosts         # show all 
+cmd: ansible webservers --list-hosts  # show only group nodes list
+cmd cmd: ansible webservers[0] --list-hosts   # show first group node 
+cmd cmd: ansible webservers[1] --list-hosts   # show second group node 
 
-🎯
 
-🎯
 
-🎯
+🎯 create user from main server 
+cmd: ansible all -m user -a "name=testuser state=present" -b 
+> -b : means it give permission as root user or (sudo) privileged
 
-🎯
+🎯 see list of user 
+cmd: ansible all -m command -a "cat /etc/passwd" -b 
+
+🎯 run cmd in all node on inventory file 
+cmd: ansible all -m command -a "ls -la" -b
+
+🎯 create a file in all node 
+cmd: ansible all -m command -a "touch index.html" -b
+
+🎯 install package in all nodes 
+cmd: ansible all -m command -a "yum install tree -y" -b
 
 🎯
 
