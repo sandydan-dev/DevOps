@@ -1,0 +1,87 @@
+Wha is Cloud Computing Service Models
+
++===========================================================================================================+
+|                                   CLOUD COMPUTING SERVICE MODELS                                         |
++=========================+===============================+===============================================+
+|           IaaS          |             PaaS              |                     SaaS                      |
+|   Infrastructure as a   |       Platform as a Service   |           Software as a Service               |
+|          Service        |                               |                                               |
++=========================+===============================+===============================================+
+
+  CONTROL LEVEL       ---------------------->   FROM MAX CONTROL TO MIN CONTROL   <-----------------------
+
++-------------------------+-----------------------------+-----------------------------------------------+
+| You Manage:             | You Manage:                 | You Manage:                                   |
+| - Applications          | - Applications              | - App settings only                            |
+| - Data                  | - Data                      | (Everything else managed by provider)          |
+| - Runtime               |                             |                                               |
+| Provider Manages:       | Provider Manages:           | Provider Manages:                              |
+| - Virtualization        | - Runtime                   | - Everything (App, OS, Servers, Network)       |
+| - Servers               | - Middleware                |                                               |
+| - Storage               | - Operating System          |                                               |
+| - Networking            | - Servers/Storage           |                                               |
+|                         | - Networking                |                                               |
++-------------------------+-----------------------------+-----------------------------------------------+
+
+                   UNDERSTANDING THROUGH REAL-WORLD ANALOGY (VERY IMPORTANT FOR INTERVIEWS)
++-------------------------+-----------------------------+-----------------------------------------------+
+| IaaS = Renting a house  | PaaS = Ready-made space     | SaaS = Hotel room                              |
+| You furnish & maintain  | You only bring your things  | Everything is already ready                   |
+| everything else         | Provider handles structure  | You just use                                   |
++-------------------------+-----------------------------+-----------------------------------------------+
+
+                   LAYERED “STACK” VIEW (VERY EASY TO REMEMBER)
+
++-----------------------------------------------------------------------------------------------------------+
+|          | Application | Middleware | Runtime | OS | Virtualization | Servers | Storage | Networking   |
++----------+-----------------------------------------------------------------------------------------------+
+| IaaS     |     You     |    You     |   You   |You | Provider       | Provider| Provider| Provider      |
+| PaaS     |     You     | Provider   |Provider |Provider| Provider  | Provider| Provider| Provider      |
+| SaaS     | Provider    | Provider   |Provider |Provider| Provider  | Provider| Provider| Provider      |
++-----------------------------------------------------------------------------------------------------------+
+
+                  PURPOSE / USE CASES
++-------------------------+-----------------------------+-----------------------------------------------+
+| IaaS                    | PaaS                        | SaaS                                          |
+|-------------------------|-----------------------------|-----------------------------------------------|
+| - Build anything        | - Build apps without        | - Use apps without installing                 |
+|   from scratch          |   managing servers          | - Business tools ready to use                 |
+| - Full customization    | - Developers focus only     | - Email, CRM, Office, meetings                |
+|                         |   on code                   |                                               |
++-------------------------+-----------------------------+-----------------------------------------------+
+
+                   BEST FOR
++-------------------------+-----------------------------+-----------------------------------------------+
+| - Sysadmins             | - Developers                | - End-users / companies                       |
+| - Cloud architects      | - Quick deployments         | - No technical team required                  |
+| - Custom infra setups   | - Auto-scaling apps         | - Fast onboarding                             |
++-------------------------+-----------------------------+-----------------------------------------------+
+
+                   COMMON EXAMPLES
++-------------------------+-----------------------------+-----------------------------------------------+
+| - AWS EC2               | - AWS Elastic Beanstalk     | - Gmail, Google Workspace                     |
+| - Google Compute Engine | - Google App Engine         | - Salesforce, Zoom                            |
+| - Azure VMs             | - Azure App Services        | - Dropbox                                     |
++-------------------------+-----------------------------+-----------------------------------------------+
+
+                   ADVANTAGES
++-------------------------+-----------------------------+-----------------------------------------------+
+| - Full control          | - No need to manage OS      | - Ready-to-use                                |
+| - Highly scalable       | - Faster coding/deployment  | - No installation                             |
+| - Best for enterprises  | - Built-in CI/CD tools      | - Easy to scale                               |
++-------------------------+-----------------------------+-----------------------------------------------+
+
+                   DISADVANTAGES
++-------------------------+-----------------------------+-----------------------------------------------+
+| - Complex to manage     | - Less control than IaaS    | - Zero customization                          |
+| - Requires skill        | - Vendor lock-in            | - Total dependency on provider                |
++-------------------------+-----------------------------+-----------------------------------------------+
+
+                   MEMORY TRICK (SUPER SIMPLE)
++-------------------------------------------------------+
+| IaaS → You manage MOST                                |
+| PaaS → You manage SOME                                |
+| SaaS → You manage NONE                                |
++-------------------------------------------------------+
+
+

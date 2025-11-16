@@ -1,0 +1,87 @@
+AWS Security Group
+
+It is a firewall which is stand front of instance, and manage traffic (inbound / outbound)
+
+An AWS Security Group (SG)  is like a virtual firewall that controls INBOUND (comming inside) and
+OUTBOUND (going outside) traffic for your EC2 Instance 
+
+
+Act as virtual firewall    =  Works at EC2 instance level
+Stateful                   = if you allow incoming traffic, return traffic is automatically allowd 
+Inbound rules              = Control traffic comming into your instance
+Ountbound rules            = control traffic going out from your instance
+Allow only                 = you cannot deny, you can only ALLOW ports/IPs
+Default Security Group     = Block all inbound, allows all outbound
+
+
+Security Group is Stateful
+If you allow Inbound Port 80 (HTTP):
+✅ You do NOT need to add outbound rule
+Because outbound (reply) is automatically allowed.
+
+Same for SSH:
+Allow inbound SSH (22) → reply is auto allowed.
+
+
+🎯 3. Most Common Security Group Rules
+👉 For Web Server (Nginx/Apache):
+Inbound:
+- Port 22 (SSH) — only your IP
+- Port 80 (HTTP) — anywhere (0.0.0.0/0)
+- Port 443 (HTTPS) — anywhere (0.0.0.0/0)
+
+Outbound:
+- All traffic allowed (default)
+
+
+✔ Best Inbound Rules:
+
+| Type  | Port | Source       | Purpose               |
+| ----- | ---- | ------------ | --------------------- |
+| SSH   | 22   | Your IP only | Secure login          |
+| HTTP  | 80   | 0.0.0.0/0    | Website access        |
+| HTTPS | 443  | 0.0.0.0/0    | Secure website access |
+
+
+
+🔧 6. How Security Group Works Internally
+When a request hits your EC2:
+
+Step 1 → Security Group checks:
+- Is port allowed?
+- Is IP allowed?
+
+Step 2 → If allowed → EC2 receives traffic
+If not → traffic blocked automatically
+
+
+🧠 Difference Between Security Group and NACL
+
+| Feature    | Security Group | Network ACL  |
+| ---------- | -------------- | ------------ |
+| Level      | Instance-level | Subnet-level |
+| Stateful   | Yes            | No           |
+| Rules      | Only Allow     | Allow + Deny |
+| Complexity | Easy           | Harder       |
+
+
+# if traffic will comes from other ports / IPs it will block that traffic
+
+# Create Security Group
+> Go to EC2 instance 
+> Security Group > Create Security Group
+> Security group name : ubuntuSG
+> Description : ubuntuSG
+> VPC         : default
+
+Inbound rules > add rules
+type: ssh 
+port range: 22 
+Source : MyIP(only me) / anywhere(for all)
+
+Outbound rules
+type: All traffic
+port range: all
+destination : customIP   > 0.0.0.0/0
+
+> Create Secure Group

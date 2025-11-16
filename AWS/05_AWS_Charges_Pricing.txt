@@ -1,0 +1,88 @@
+AWS pricing is based on Pay-as-you-go, meaning:
+
+You pay only for what you use.
+There is no upfront cost.
+No termination fees.
+
+But AWS pricing changes depending on usage, region, instance type, storage class, data transfer, etc.
+
+⭐ Three Main Ways AWS Charges You
+
+1️⃣ Compute (EC2, Lambda, ECS, EKS)
+
+AWS charges based on:
+- Instance type (t2.micro vs t3.medium etc.)
+- Instance size (CPU + RAM)
+- Time used (per second or per hour)
+- Region (Mumbai vs Oregon)
+- Operating System (Linux cheaper, Windows higher)
+- Reserved Instances (sign 1–3 year commitment → discount)
+- Spot Instances (spare capacity → cheapest)
+
+Example:
+t2.micro = cheap
+t2.large = more cost
+t3.large + Windows = even more cost
+
+
+2️⃣ Storage (S3, EBS, Glacier)
+
+AWS charges for:
+- Storage amount (GB)
+- Storage class
+  - S3 Standard: expensive
+  - S3 IA (Infrequent Access): cheaper
+  - S3 Glacier: very cheap
+- PUT / GET requests
+- Data transfer outside region
+
+Example:
+Store 10GB in S3 Standard → Higher cost  
+Store same 10GB in Glacier → Lower cost
+
+
+3️⃣ Data Transfer
+
+AWS charges for:
+- Outbound data (internet) → $$$
+- Inbound data → FREE
+- Between AZs → cost
+- Between regions → cost
+- Within same VPC AZ → FREE
+
+Example:
+EC2 → S3 same region = free
+EC2 → internet = costly
+
+
+⭐ Why AWS Pricing Changes Automatically
+
+AWS updates billing based on your resource usage:
+
+| Action You Do             | AWS Billing Change                     |
+| ------------------------- | -------------------------------------- |
+| Launch EC2 instance       | Cost increases                         |
+| Stop EC2 instance         | Compute cost stops (EBS still charges) |
+| Delete S3 files           | Storage cost decreases                 |
+| Move data to Glacier      | Storage cost decreases                 |
+| Large traffic to internet | Cost increases                         |
+| Use Reserved Instances    | Cost decreases                         |
+| Use Spot Instances        | Cost decreases a lot                   |
+
+
+
++-------------------------------+
+|         AWS Pricing           |
++-------------+-----------------+
+| COMPUTE     | Pay for servers |
+| STORAGE     | Pay for GB used |
+| NETWORK     | Pay for data    |
++-------------+-----------------+
+|   YOU CONTROL COST BY:        |
+| - Choosing right instance     |
+| - Deleting unused resources   |
+| - Stopping idle servers       |
+| - Using S3 IA, Glacier        |
+| - Using Reserved Instances    |
+| - Using Spot Instances        |
++-------------------------------+
