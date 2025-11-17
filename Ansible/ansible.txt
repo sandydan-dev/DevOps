@@ -359,3 +359,74 @@ ex : ansible all -m command -a "ls"
 6 : file 
 7 : copy 
 8 : user 
+
+# ================================================================= #
+
+# as ansadmin user 
+
+# copy module 
+cmd: touch file1 file2     # in the main ansadmin as server 
+
+cmd: ansible all -m copy -a "src=file1 dest:/home/ansadmin" -b 
+> that "file1" will copy in all nodes home path (/home/ansadmin)
+
+# see there nodes if file copied or not 
+cmd: ansible all -m command -a "ls" -b 
+> this will shows list of directory/files inside the nodes 
+
+# ================================================================= #
+
+
+state=present(install)/latest(update)/absent(uninstall)
+
+# Deal with package module 
+cmd: ansible -b -m yum -a "name=httpd state=present"
+> yum : is module name to installs package 
+> name=httpd : means webserver name 
+> state=present: it means install/downnload/present will download the package 
+
+# to remove package 
+cmd: sudo yum remove httpd -y 
+
+# ================================================================= #
+
+# Service Module 
+> start httpd service 
+
+cmd: ansible all -b -m service -a "name=httpd state=start"
+> service module start the httpd server 
+
+cmd: ansible all -b -m command -a "service httpd start"
+> this will start httpd server 
+
+cmd: ansible all -b -m command -a "sevice httpd status"
+> this will show httpd status, is service start or not 
+
+# ================================================================= #
+
+# Create a user, user module 
+> manage users and groups 
+
+cmd: ansible all -b -m user -a "name=testuser state=present"
+
+> or we can use only "name=testuser"
+> "state=absent" will delete user 
+
+# verify is user created or not in all nodes 
+cmd: ansible all -b -m commad -a "cat /etc/passwd"
+
+> this will show list of users in this path 
+
+# ================================================================= #
+
+# see details of each remote nodes
+cmd: ansible all -m setup 
+
+> this will collect deatiled information about each remote host 
+- os version
+- IP address 
+- cpu, memory 
+- networ interface 
+- python versin 
+- hostname 
+> this is call ansible facts. 
