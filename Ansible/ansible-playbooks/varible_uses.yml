@@ -1,0 +1,19 @@
+--- 
+- name: uses of varible
+  hosts: all 
+  become: yes 
+  
+  vars:
+   my_uer: rohit
+   my_package: httpd
+
+  tasks:
+   - name:  crate a user 
+     user:
+      name: "{{my_uer}}"
+      state: present
+
+   - name: install package httpd     
+     dnf:
+      name: "{{my_package}}"
+      state: present 
