@@ -1,0 +1,15 @@
+---
+- name: create a user list 
+  hosts: all
+  become: true
+  tasks:
+
+  #--- task one 
+   - name: create first user 
+     user:
+      name: raj
+
+#--- task two
+   - name: create second user 
+     user:
+      name: jay   

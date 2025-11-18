@@ -1,0 +1,21 @@
+---
+- name: install httpd package and start the service 
+  hosts: all 
+  become: yes
+
+  vars:
+   httpd_service_name: httpd
+
+  tasks:
+  # Task to install httpd package
+   - name: install httpd package
+     dnf:
+      name: "{{ httpd_service_name }}"  
+      state: present
+
+   # Task to start and enable httpd service
+   - name: start and enable httpd service
+     service:
+      name: "{{ httpd_service_name }}"
+      state: started
+      enabled: yes  
