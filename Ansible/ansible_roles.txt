@@ -1,0 +1,56 @@
+# what is ansible role
+- A folder that contains organined tasks, handlers, varibles, files, templates, etc. 
+  
+  - it keeps playbook clean
+  - reuse code
+  - we can manage big file easily
+  - separate task into categories
+
+🗂 Default Role Folder Structure
+
+myrole/
+├── tasks/
+│   └── main.yml
+├── handlers/
+│   └── main.yml
+├── files/
+├── templates/
+├── vars/
+│   └── main.yml
+├── defaults/
+│   └── main.yml
+└── meta/
+    └── main.yml
+
+
+But you do NOT need to use all folders.
+Minimum required is:
+
+myrole/
+└── tasks/
+    └── main.yml
+
+
+💡 Why do we need roles?
+- imagine we have installed Tomcat on 50 servers/hosts 
+
+- without roles > we repeat same task to everywhere
+- with roles > write once, reuse everywhere 
+
+
+# create/initialize role templates 
+cmd: ansible-galaxy init setup-apache-role
+
+- when in initialize cmd it will create default folders/templates
+
+- This creates:
+setup-apache-role/
+├── tasks/main.yml
+├── handlers/main.yml
+├── files/
+├── templates/
+├── vars/main.yml
+├── defaults/main.yml
+└── meta/main.yml
+
+
