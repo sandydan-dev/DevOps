@@ -293,3 +293,11 @@ cd: cd SampleWebApp
   types: Delivery Pipeline   + create
   
 
+# Clean it up (delete step by step)
+# sequence : 
+1: Uninstall Jenkins + Tomcat
+2: Uninstall Java
+3: Go to C:// drive : Jenkins(also from hidden items) + Apache Software Foundation + Apache Ant
+4: Remove ENV system varibale of jenkins + Ant  paths
+5: Also delete package (softwares)
+6: Then Restart : Mandatory   (if we start from new then restart)
