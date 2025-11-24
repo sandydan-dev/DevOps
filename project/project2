@@ -1,0 +1,353 @@
+# AMI : Amazon Linux
+DevOps CI-CD Pipeline Project 2
+This project demonstrates a CI-CD pipeline using AWS services.
+# Project Structure:
+Instance(git-server) > git hub > Instance (jenkins-server) - (git, java, maven, jenkins (job)) > instance (tomcat-server) - (java, tomcat)
+
+┌───────────────┐ → ┌──────────┐ → ┌─────────────────────┐ → ┌─────────────────┐
+│ Git Server    │   │ GitHub   │   │ Jenkins Server (EC2) │   │ Tomcat Server   │
+│ (EC2, Git)    │   │ Repo     │   │ Git | Java | Maven   │   │ Java | Tomcat   │
+└───────────────┘   └──────────┘   │ Jenkins Jobs         │   │ Deploy WAR      │
+                                   └─────────────────────┘   └─────────────────┘
+# Workflow:
+1. Code is pushed to the GitHub repository.
+2. Jenkins server pulls the latest code from GitHub.
+3. Jenkins builds the project using Maven.
+4. The built WAR file is deployed to the Tomcat server.
+# Prerequisites:
+- AWS EC2 instances for Git server, Jenkins server, and Tomcat server.
+- Git installed on the Git server.
+- Java and Maven installed on the Jenkins server.
+- Jenkins installed and configured on the Jenkins server.
+- Java and Tomcat installed on the Tomcat server.
+# Jenkins Job Configuration with internal settings:
+- Source Code Management:
+  - Git Repository URL: [Your GitHub Repo URL]
+  - Credentials: [Your GitHub Credentials]
+- Build Triggers:
+  - Poll SCM: H/5 * * * *
+- Build Environment:
+    - Delete workspace before build starts
+- Build Steps:
+    - Invoke top-level Maven targets:
+        - Goals: clean install
+- Post-build Actions:
+    - Deploy WAR/EAR to a container:
+        - WAR/EAR files: target/your-app.war
+        - Context path: /your-app
+        - Containers: Tomcat 7.x Remote
+        - Tomcat URL: http://[Tomcat-Server-IP]:8080/
+        - Credentials: [Your Tomcat Credentials]
+# Note:
+- Ensure all necessary ports (e.g., 8080 for Tomcat, 8080 for Jenkins) are open in the security groups of the respective EC2 instances.
+- Adjust configurations based on your specific project requirements.    
+- Regularly monitor the Jenkins jobs for build status and logs.
+- Implement proper security measures for accessing GitHub, Jenkins, and Tomcat servers.
+# Conclusion:
+This project provides a foundational CI-CD pipeline setup using AWS EC2 instances and popular tools like Git, Jenkins, Maven, and Tomcat. It can be further enhanced with additional features like automated testing, notifications, and scaling based on project needs.
+# AMI : Amazon Linux 
+# End of Project Documentation
+
+# ==================================================================================
+
+
+# todo> Class: DevOps CI-CD Pipeline Project 2
+# Description: This class represents the DevOps CI-CD Pipeline Project 2 documentation.
+
+# Project Structure:
+Instance(git-server) > git hub > Instance (jenkins-server) - (git, java, maven, jenkins (job)) > instance (tomcat-server) - (java, tomcat)  
+
+┌───────────────┐ → ┌──────────┐ → ┌─────────────────────┐ → ┌─────────────────┐
+│ Git Server    │   │ GitHub   │   │ Jenkins Server (EC2) │   │ Tomcat Server   │
+│ (EC2, Git)    │   │ Repo     │   │ Git | Java | Maven   │   │ Java | Tomcat   │
+└───────────────┘   └──────────┘   │ Jenkins Jobs         │   │ Deploy WAR      │
+                                   └─────────────────────┘   └─────────────────┘
+#todo: Workflow:
+# Launch EC2 instances for Git server(Developer), Jenkins server(DevOps), and Tomcat server(DevOps). Install each tool in respective instances.
+
+# 1. Code is pushed to the GitHub repository.
+# 2. Jenkins server pulls the latest code from GitHub.
+# 3. Jenkins builds the project using Maven.
+# 4. The built WAR file is deployed to the Tomcat server,and see the application running in browser.
+# 5: Monitor the Jenkins jobs for build status and logs.
+# ==================================================================================
+
+#todo: Step 1: Launch Git Server Instance
+# create/launch instance named : git-server
+  - AMI : Amazon Linux
+  - Instance Type: t2.medium
+  - Security Group: Allow SSH (22) or All traffic , optional: HTTP (80), ( optional Git (9418) no used in this project)
+  - Key Pair: dev-project.pem  # (make common key pair for all instances in this project)
+  - Security group name: projectSG # (make common security group for all instances in this project)
+  - Tag: Name : git-server
+  - Configure storage : 8 GB, General Purpose SSD (gp2)
+
+  - User data - optional:
+    #!/bin/bash
+    yum update -y
+    yum install git -y
+    yum install httpd -y
+    cd /var/www/html
+    echo "Git server is ready" > index.html
+    service httpd start
+    chkconfig httpd on
+    # End of user data
+  Launch Instance
+
+# then login to git-server using ssh   (MobaXterm)
+   - SSH :      ec2-user@[git-server-public-ip]
+   - .pem file: dev-project.pem
+   - ok
+
+# then go as root user
+   - cmd: sudo su -
+   > now change the hostname, go inside /etc/hostname file and change the hostname to git-server
+   - cmd: vi /etc/hostname
+   - change the hostname to git-server
+    - cmd: init 6  # reboot instance to reflect hostname change
+    - after reboot login again using ssh
+   - SSH :      ec2-user@[git-server-public-ip]
+    - .pem file: dev-project.pem
+    - ok
+    - cmd: sudo su -
+    - now check the hostname
+     - cmd: hostname
+        - output: [root@git-server ~]# hostname
+                  git-server
+
+    - now create a sample git repository
+     - cmd: mkdir my-sample-repo.git
+     - cmd: cd my-sample-repo.git
+     - cmd: git init --bare  # create bare repository
+     - now the git server is ready with a sample bare repository
+     - end of git-server setup
+
+    - or pull code from github repo to git-server (optional)
+      - cmd: yum install git -y
+      > name and email config (only first time)
+      - cmd: git config --global user.name "sandeep"
+        - cmd: git config --global user.email "sandydan.dev@gmail.com"
+        - cmd: git clone [your-github-repo-url]
+      
+      - end of git-server setup
+
+      - now verify git config
+       - cmd: git config --list
+        - output: user.name=sandeep
+        - output: user.email=sandydan.dev@gmail.com
+       - means git is working fine  
+
+# now after pulling code from github 
+    - got inside the cloned repo directory
+     - cmd: cd FormFillApp          # [your-cloned-repo-directory]    
+     (main file is |"pom.xml"| for maven build, webapp folder for web content to deploy in tomcat server) 
+# ==================================================================================               
+
+#todo: Step 2: Launch Jenkins Server Instance
+# create/launch instance named : jenkins-server
+- we setup for Git, Java, Maven, In jenkins-server instance
+- AMI : Amazon Linux
+- Instance Type: t2.medium
+- Security Group: use common security group : projectSG
+    - Allow SSH (22)
+    - Allow HTTP (80)  # optional
+    - Allow Jenkins (8080) # this port is default jenkins port for web access
+    - optional: Allow All traffic (not recommended for production)
+
+- Key Pair: dev-project.pem  # (make common key pair for all instances in this project)
+- Security group name: projectSG # (make common security group for all instances in this project)
+- Configure storage : 25 GB, General Purpose SSD (gp2)
+ Launch Instance
+
+#! dont forget to add "Elastic Ip" for jenkins-server instance to avoid ip change after stop/start instance from aws console
+- Allocate new Elastic IP from AWS console
+- then Associate Elastic IP to jenkins-server instance
+- now use this Elastic IP to access jenkins-server instance in browser
+- http://[jenkins-server-elastic-ip]:8080/  # access jenkins server in browser like this, use this elastic ip everywhere instead of public ip 
+- paste jenkins server url in browser to access jenkins server
+- like : http://[jenkins-server-elastic-ip]:8080/
+- now get the initial admin password from jenkins-server instance to unlock jenkins server in browser
+- do not choose default plugins, choose "Install suggested plugins" option
+- then create first admin user for jenkins server
+- finally jenkins is ready to use
+
+
+# then login to jenkins-server using ssh   (MobaXterm)
+   - SSH :      ec2-user@[jenkins-server-public-ip]
+    - .pem file: dev-project.pem
+    - ok
+# then go as root user
+   - cmd: sudo su -
+    > now change the hostname, go inside /etc/hostname file and change the hostname to jenkins-server
+    - cmd: vi /etc/hostname
+    - change the hostname to jenkins-server
+     - cmd: init 6  # reboot instance to reflect hostname change
+     - after reboot login again using ssh
+    - SSH :      ec2-user@[jenkins-server-public-ip]
+     - .pem file: dev-project.pem
+     - ok
+     - cmd: sudo su -
+     - now check the hostname
+      - cmd: hostname
+        - output: [root@jenkins-server ~]# hostname
+                  jenkins-server
+
+# after all of this things install git, java, maven, jenkins in jenkins-server instance
+# Install Git
+ - cmd: yum install git -y
+ - cmd: git --version   # verify git installation
+
+# Install java-21*
+ - cmd: yum install java-21* -y
+ - cmd: java -version   # verify java installation
+
+# Install Maven
+- download maven: go to maven site > go to download section > copy the link of apache-maven-3.9.6-bin.tar.gz (latest version)
+ - cmd: cd /opt   # why /opt ? because we install maven in /opt directory, its a good practice
+ - cmd: wget https://downloads.apache.org/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.tar.gz
+ - cmd: tar -xvzf apache-maven-3.9.6-bin.tar.gz   # extract the downloaded maven tar file
+ - cmd: mv apache-maven-3.9.6 maven               # rename the extracted maven folder to maven
+  
+ - cd maven     # go inside maven directory to verify
+ - cmd: pwd     # print working directory
+   - output: /opt/maven   # this is for add in .bash_profile file for maven environment variables
+    > also see file maven/bin to add in PATH variable
+    like : M2: /opt/maven/bin and  M2_HOME : /opt/maven
+- GO as root 
+- cmd: cd      
+
+> and nwo find the java path for environment variables
+- cmd: readlink -f $(which java) 
+  - output: /usr/lib/jvm/java-21-amazon-corretto.x86_64/bin/java
+  or
+  - cmd: find /usr/lib/jvm/java-21* | head -n 3 # to find java installation path
+    - output: /usr/lib/jvm/java-21-amazon-corretto.x86_64 # this is the java home path
+
+> choose /usr/lib/jvm/java-21-amazon-corretto.x86_64 as JAVA_HOME path for environment variables
+
+- now open .bash_profile file to add environment variables for java and maven
+  - cmd: vi .bash_profile     ( use this only)
+   - now add below environment variables at the end of file
+    JAVA_HOME=/usr/lib/jvm/java-21-amazon-corretto.x86_64
+    M2=/opt/maven/bin     # maven bin path
+    M2_HOME=/opt/maven    # maven home path
+    PATH=$PATH:$HOME/bin:$JAVA_HOME:$M2:$M2_HOME  # add java and maven to PATH variable
+    export PATH            # export PATH variable
+   - now save and exit the file
+   # or
+    export JAVA_HOME=/usr/lib/jvm/java-21-amazon-corretto.x86_64
+    export M2_HOME=/opt/maven
+    export M2=$M2_HOME/bin
+    export PATH=$JAVA_HOME/bin:$M2:$PATH
+    - save and exit the file
+
+- now reload or exit from root uesr, then again go as root user to reflect environment variables
+ - cmd: exit    # exit from root user
+ - cmd: sudo su -   # go again as root user
+ - cmd: source .bash_profile   # reload the .bash_profile file to reflect environment variables
+
+- now verify ENV variables for java and maven
+ - cmd: echo $JAVA_HOME
+   - output: /usr/lib/jvm/java-21-amazon-corretto.x86_64
+ - cmd: echo $M2_HOME
+   - output: /opt/maven
+ - cmd: mvn -version
+   - output: Apache Maven 3.9.6  # means maven is working fine
+ - echo $PATH
+   - output: ...:/usr/lib/jvm/java-21-amazon-corretto.x86_64/bin:/opt/maven/bin:...  # means PATH variable is set properly
+
+- so now we configured git, java, maven in jenkins-server instance
+
+- now install jenkins in jenkins-server instance
+- cmd: wget -O /etc/yum.repos.d/jenkins.repo https://pkg.jenkins.io/redhat-stable/jenkins.repo
+- cmd: rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io.key
+- cmd: yum install jenkins -y
+- cmd: systemctl start jenkins  # start jenkins service
+- cmd: systemctl enable jenkins # enable jenkins service, so that jenkins starts automatically after reboot
+- cmd: systemctl status jenkins # verify jenkins service status
+  - output: active (running)  # means jenkins service is running
+
+
+# then access jenkins server in browser using public ip or elastic ip
+- http://[jenkins-server-elastic-ip]:8080/  # access jenkins server in browser like this, use this elastic ip everywhere instead of public ip
+- paste jenkins server url in browser to access jenkins server
+
+- now take initial admin password from jenkins-server instance to unlock jenkins server in browser
+- cmd: cat /var/lib/jenkins/secrets/initialAdminPassword     # copy this password
+  - output:  abcd1234efgh5678ijkl9012mnop3456  # example password
+- paste the password in browser to unlock jenkins server
+- now choose "Install suggested plugins" option
+- then create first admin user for jenkins server
+- finally jenkins is ready to use and jenkins server link is http://13.49.124.248:8080/  # example link
+
+- jenkins configuration is done in jenkins-server instance
+
+- now install jenkins plugins required for this project
+- Github plugin                # to integrate github with jenkins
+- Maven Integration plugin     # to build maven projects in jenkins
+- Deploy to container plugin   # to deploy war file to tomcat server from jenkins
+- Publish OverSSH plugin       # to transfer files over ssh from jenkins to tomcat server (one machine to another machine)
+
+- (below optional)
+- Credentials plugin           # to manage credentials in jenkins
+- SSH Credentials plugin       # to manage ssh credentials in jenkins
+- etc
+
+> Now got to manage jenkins > tools and configure system configuration for maven and jdk
+- go to Manage Jenkins > Tool   ( under this section) 
+
+- JDK installation
+    - Add JDK
+    - Name: java-21
+    - JAVA_HOME: /usr/lib/jvm/java-21-amazon-corretto.x86_64 # inside jenkins-server instance
+    - uncheck "Install automatically" option
+
+- Git installation
+    - Add Git
+    - Name: git
+    - Path to Git executable: /usr/bin/git  # inside jenkins-server instance
+    - uncheck "Install automatically" option
+
+- Maven installation
+    - Add Maven
+    - Name: maven-3.9.6
+    - MAVEN_HOME: /opt/maven  # inside jenkins-server instance
+    - uncheck "Install automatically" option
+    
+- nwo "apply + save" the configuration
+- now jenkins-server is ready with git, java, maven, jenkins setup
+
+# now create a jenkins job to implement CI-CD pipeline
+- go to jenkins dashboard
+- click on "New Item"
+- enter item name: FormFillApp-CI-CD-Pipeline
+- choose "maven project" option
+- click OK
+- now configure the jenkins job with below settings
+- Source Code Management:
+  - Git Repository URL: [Your GitHub Repo URL]
+  - Credentials: [Your GitHub Credentials]
+- Build Triggers:
+  - Poll SCM: H/5 * * * *
+  - Goal and options: clean install    # maven build command, means clean old build and do fresh build
+  
+- Post-build Actions:    #optional : (deploy war to tomcat server)
+    - Deploy WAR/EAR to a container:
+        - WAR/EAR files: target/FormFillApp.war
+        - Context path: /FormFillApp
+        - Containers: Tomcat 7.x Remote
+        - Tomcat URL: http://[Tomcat-Server-IP]:8080/
+        - Credentials: [Your Tomcat Credentials]
+- now save the jenkins job configuration
+
+- nwo build job manually first time
+- click on "Build Now" option
+- monitor the build console output for build status
+- after build complete see the war file tomcat server also in jenkins files
+- go inside :
+   - cmd: cd /var/lib/jenkins/workspace/FormFillApp-CI-CD-Pipeline/target/<warfile>.war
+
+- now see actual time and date for war file created
+   - cmd: ls -l <warfile>.war
+     - output: -rw-r--r-- 1 jenkins jenkins 123456 Jul 20 12:34 FormFillApp.war  # example output
+# ==================================================================================
