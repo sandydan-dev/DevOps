@@ -1,9 +1,0 @@
----
-- name: create file 
-  hosts: all
-  become: yes 
-  tasks:
-   - name: create file    # name of the task
-     file:                # module name for create file 
-      path: /home/ansadmin/demofile
-      state: touch        # or for directory create "directory" cmd
