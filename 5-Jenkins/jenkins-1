@@ -1,0 +1,249 @@
+# ============== Jenkins ============= #
+
+                     +--------------------+
+                 |     GitHub Repo    |
+                 +---------+----------+
+                           |
+                           v
++-------------+     +------JENKINS-------+      +-------------+
+|  Developer  |<--->|   (CI/CD Engine)   |<---->| SonarQube    |
++-------------+     +---------+----------+      +-------------+
+                           |
+     +----------+----------+----------+----------+---------+
+     |          |          |          |          |         |
+     v          v          v          v          v         v
++--------+  +--------+  +--------+  +-----------+  +---------------+
+| Docker |  | Ansible|  | Maven  |  | Kubernetes|  | Deployment    |
+| Server |  | Server |  | Build  |  | Cluster   |  | Route 53 DNS  |
++--------+  +--------+  +--------+  +-----------+  +---------------+
+
+
+
+
+> What ever developers write code, they add, they commit and pushed there code to github, That moment "Jenkins" 
+  will pull that code, and it will send that code to maven for build, for createing "end-product",
+  then that will will be send to "sellenium" for testing. to checking the quality fo code,
+  The "end-product" will be store in the "JFrog" (artifactory),
+  and that "end-product" will be either deliverd or deployed based on the requirements
+  If it is a technical client so we will deployed as per his need,
+  if his not technical client, we directly deploy clients machines
+  thsi is "CI-CD" pipeline.
+
+
+
+# Key terminology
+
+> Integrate : combine all code written by developers till some point of time 
+
++-----------+      +-----------+     +------------+ 
+| Developer | --> | git push  | -->  | GitHub |
++-----------+     +----------+       +------------+   
+
+> Build : Compile the code and make a small executable package.
+
+┌-----------┐     ┌--------┐     ┌---------┐     ┌--------┐
+│ Developer │ --> │ GitHub │ --> │ Jenkins │ --> │ Maven   │
+│           │     │        │     │         │     │ (Build)│
+└-----------┘     └--------┘     └---------┘     └--------┘
+
+> Test: Test in all environment whether application is working properly or not 
+
+┌-----------┐     ┌--------┐     ┌---------┐     ┌--------┐     ┌----------------┐
+│ Developer │ --> │ GitHub │ --> │ Jenkins │ --> │ Maven   │ --> │ Testing (Selenium) │
+│           │     │        │     │         │     │ (Build)│     │                │
+└-----------┘     └--------┘     └---------┘     └--------┘     └----------------┘
+
+
+> Achieved(JFrog) : Store in an artifactory so that in future we may use deliverd again 
+
+┌-----------┐     ┌--------┐     ┌---------┐     ┌--------┐     ┌----------------┐     ┌----------------+
+│ Developer │ --> │ GitHub │ --> │ Jenkins │ --> │ Maven   │ --> │ Testing (Selenium) │ --> │ Artifact (JFrog) │
+│           │     │        │     │         │     │ (Build)│     │                │     │   / Artifactory │
+└-----------┘     └--------┘     └---------┘     └--------┘
+
+
+> Deliver: Handling end-product to client 
+
+> Deploy: Installing product in the client machines
+
+
+# Jenkins workflow.
+  - We attach git, mvaen, selenium, and artifactory plugins to jenkins.
+  - Once developers push code in git, Jenkins pull that code and send to maven for build.
+  - then testing is done, Jenins will pull that code and send to artifactory as per requirement
+  - we ca also deploye with jenkins.
+
+# Way of Continuous Integration
+  - can do automatically
+  - can write scripts
+  - can use tools like Jenkins
+  - beenfits of CI
+  - delete bugs as soon as possible
+  - if you want to stop and SDLC process at any time
+  - you can stop at the test stage only or you can continue till deployment
+  - maintain history (logs) for reference.
+
+# Why only Jenkins ?
+  - it has so many plugins for different purpose
+  - you can write your own plugins
+  - you can use community plugin
+  - Jenkins is not just a tool, it is a frameword, you ca do whatever
+  - you want all you need is plugin
+  - we ca attach slaves(nodes) to jenkins master, it instruct others (slaves) to do itself done the job
+  - jenkins also acts as crome server replacement can do repeated task automatically
+  - running some scripts regularly
+    - automatic daily alarm.
+  can create labels ( can restrict where the project has to run )    
+
+# Jenkins
+ - Jenkins Architecture
+ - clean server model
+ - when you install jenkins it acts as master
+ - jenkins invoke clients to perform jobs
+
+
+# Supported OS
+ - can install in any OS
+ - you will be accessing Jinkins through web only
+ - choose long term support release ( to get support )
+ - install java
+ - install web browser
+ - and jenkins access only from the browser
+
+
+# Three types of configuration
+ 1: Global Configuration
+ 2: Node Configuration
+ 3: Job Configuration
+
+
+# Jenkins
+- Get familier with jenkins dashboard
+- Jenkins services on windows
+- localhost:8080/restart   # jenkins wil restart again
+- localhost:8080/stop      # it stop jenkins process
+- localhost:8080/start     # start the jenkins
+
+- create job some job and familiar with all options and build.
+
+
+> Jenkins run on default port "8080"
+> when use AWS need Elastic IP (static IP) for stable Ip so we can use only catched IP
+
+
+# AWS
+- create instance
+- name: jenkins-server
+- ami: Amazon linux
+- instance type: t2.medium
+- key pair: jenkinsKey
+- Network settings: open port SSH(22), HTTP(80) custom port : 8080
+- configure storage: 25GB
+- launch(crate) instance
+
+# create elsatic IP for |"jenkins-server" for stable public IP
+- go to network & security
+- Elastic IP's
+- Allocate Elastic IP address
+- Allocate 
+
+- Attach Elastic IP to instance
+- select IP
+- Actions: Associate Elastic IP to 
+- Instance: (select instance) running jenkins-server instance
+- Associate
+
+- Now connect jenkins-server with MobaXterm
+  - Install git
+  - java
+  - maven 
+
+  > install maven inside the folder
+  cmd: cd /opt
+  > install maven 
+  > after insatlling and extracting maven, rename its name with "maven"
+
+  > take maven path like
+    - /opt/maven 
+    -/opt/maven/bin
+    > this two path to attached to ENV inside ".bash_profile" file
+
+
+  > Find java location after installing
+  cmd: find /usr/lib/jvm/java-21* | head -n 3
+  result will show: 
+
+  > now setup java path to ENV inside ".bash_profile" file
+  cmd: vi .bash_profile      # in root 
+  
+  > now add inside its path for maven and java
+  JAVA_HOME=/usr/lib/jvm/java-21.....X86_64
+  M2_HOME=/opt/maven
+  M2=/opt/maven/bin
+  PATH=$PATH:$HOME:/bin/$JAVA_HOME/bin:$M2:$M2_HOME 
+  export PATH
+
+> Install Jenkins for RedHat Linux
+ cmd: sudo wget -O /etc/yum.repos.d/jenkins.repo \
+    https://pkg.jenkins.io/redhat-stable/jenkins.repo
+
+ cmd: sudo rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
+ 
+ cmd: sudo yum install jenkins
+ 
+ cmd: service jenkins start
+
+ cmd: jenkins --version    # check jenkins version
+
+
+ > after doing all things
+ - take instance Public IP and also add port in security group for 8080 to open all traffic
+ - take public Ip    <54.255.83.25:8080> paste this, it will open jenkins server
+
+ - after it will ask for "Administration Password" 
+ - got to location "/var/lib/jenkins/secrets/initialAdminPassword"
+ cmd: cat /var/lib/jenkins/secrets/initialAdminPassword
+    - result : bc944e385c19420f9afb978931f58cad
+    - copy this psssword and paste to jenkins tab 
+    - after, install plugins suggetsted
+    - then add credentials for login
+    - username : admin
+    - password: admin
+    - save
+
+    jenkins URL : http://54.255.83.25:8080/
+    - start jenkins 
+
+    # Default working directory for Jenkins
+    /var/lib/jenkins/workspace
+    - when build job it shows only on this path it will build on this path only (jenkins Job)
+
+    # create first Job (Free style)
+    just add cmd :
+    echo "Hello World"
+    - apply = save
+
+    - then build the job
+
+    ----------------------------------
+
+# for java project need maven plugin
+install 
+
+# set the path for JAVA_HOME and M2_HOME
+- GO to manage jenkins > tools
+ - JDK installations
+   name: <any-name>
+   JAVA_HOME: /usr/lib/jvm/java-21-amazon-corretto.x86_64
+
+ - Maven Installations
+   name: maven
+   MAVEN_HOME: M2_HOME
+
+apply + save   
+
+---------------------------------------------------------------------------
+
+
+
+

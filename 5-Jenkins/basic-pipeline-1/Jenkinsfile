@@ -1,0 +1,119 @@
+//todo: file 1: Jenkinsfile
+// pipeline {
+//     agent any      // 
+
+//     stages {
+
+//       // stage 1
+//       stage("stage one") {
+//         steps {
+//             echo "stage 1 runs"
+//         }
+//       }
+
+//       // stage 2
+//       stage("stage two") {
+//         steps {
+//             echo "stage 2 runs"
+//         }
+//       }
+
+//     }
+// }
+
+//todo ===================================================== //
+
+//todo: file 2: Jenkinsfile
+// pipeline {
+//   agent any   // means, jenkins will run on any machine/nodes
+
+//   stages {
+//      // stage 1
+//     stage("Build Job"){
+//       steps {
+//         echo "Build Job"
+//       }
+//     }
+
+//     // stage 2
+//     stage("Test Job"){
+//       steps {
+//         echo "Testing Job"
+//       }
+//     }
+
+//     // stage 2
+//     stage('Dev Job'){
+//       steps {
+//         echo "Development Job"
+//       }
+//     }
+//   }
+// }
+
+//todo ===================================================== //
+
+//todo: file 3: Jenkinsfile
+
+// pipeline {
+//   agent any     // automatic choose any machines/nodes
+
+//   stages {
+
+//     // stage 1
+//     stage("see date n current folder"){
+//       steps {
+//         sh "date"
+//         sh "pwd"        
+//       }
+//     }
+
+//     // stage 2
+//     stage("Test"){
+//       steps {
+//         echo "Build"
+//       }
+//     }
+
+//     // stage 3
+//     stage("Deploy"){
+//       steps {
+//         echo "Deployment"
+//       }
+//     }
+
+
+//   }
+// }
+
+
+//todo ===================================================== //
+
+//todo: file 4: Jenkinsfile
+
+// pipeline {
+//   agent any    // choose any nodes 
+
+//   stages {
+//      // stage 1
+//     stage("list file"){
+//       steps {
+//         sh '''
+//             ls
+//             date
+//            '''
+//       }
+//     }
+//    // stage 2 
+//     stage("see calendeer") {
+//        steps {
+//         sh "cal 2026"
+//        }
+//    }
+//   }
+// }
+
+
+//todo ===================================================== //
+
+//todo: file 5: Jenkinsfile
