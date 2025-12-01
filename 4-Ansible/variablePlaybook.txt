@@ -1,0 +1,77 @@
+# A variable in ansible is just a named value you can resue in your playbook instead of 
+  hard-coding thinngs. It lets you store data (like username, path, packages name and use it in multiple times.)
+
+# why variable use ?
+- make playbooks reusable and clean
+- change values in one place instead of everywhere
+- handle different environment (dev/test/prod) easily. 
+
+# Difine variables in playbooks 
+
+cmd: vi varible_uses.yml
+--- 
+- name: uses of varible
+  hosts: all 
+  become: yes 
+  
+  vars:
+   my_uer: rohit
+   my_package: httpd
+
+  tasks:
+   - name:  crate a user 
+     user:
+      name: "{{my_uer}}"
+      state: present
+
+   - name: install package httpd     
+     dnf:
+      name: "{{my_package}}"
+      state: present 
+
+   # ------ end file ------- #
+
+# run playbook 
+cmd: ansible-playbook varible_uses.yml 
+
+
+# -------------------------------------------------------- #
+
+# Child playbook 
+> create a child playbook for variables then use child playbook in main ansible-playbook
+
+cmd: vi test_user.yml
+     user1: dipika
+     user2: anannya
+     user3: santosh
+     user4: veeru
+
+# ------ end file ------ #
+
+> use this child playbook in main ansible playbook 
+
+
+# ----------
+
+> create on more playbook to add users variable file name 
+
+cmd: vi create_user_vars_file.yml 
+
+--- 
+- name: get variable child playbook for user and add child variable user file named (test_user.yml)
+  hosts: all
+  become: yes 
+
+  vars_files:
+   - test_user.yml 
+
+  tasks:
+   - name: add user from child playbook "{{user1}} one by one 
+     user:
+      name: "{{user1}}"
+      state: present 
+
+> run playbook 
+cmd: ansible-playbook create_user_vars_file.yml 
+
+

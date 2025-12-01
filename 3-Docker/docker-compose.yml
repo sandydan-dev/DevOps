@@ -1,0 +1,17 @@
+version: "3"
+services:
+  one:
+    image: ubuntu
+    command: /bin/bash -c "while true; do echo Hello One container; sleep 5; done"
+    
+    deploy:
+      replicas: 4
+    restart: always
+
+  two:
+    image: ubuntu
+    command: /bin/bash -c "while true; do echo Hello Two container; sleep 5; done"
+    
+    deploy:
+      replicas: 3
+    restart: always

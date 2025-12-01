@@ -1,0 +1,42 @@
+# Ansible Vault 
+
+
+# what is ansible vault?
+> ansible valult is a built-in tool that encrypts and decripts sensitive data files or variables so they are
+  safe to store in your playbooks or git repository
+
+> Normally, ansible playbook main contain sensitive data (like: passwrd, API keys, certification, etc)
+  if you use them as plain text, anyone can read them. 
+
+> why it exits: so you can keep secrets alongside playbook ingit without storeing them as a plain text. 
+
+# we can create envcrypted file using 
+cmd: ansible-vault create secret_file.yml 
+> this will create file as encrypted
+  - ansible-valult create: it tell ansible vault to create or encripts file
+
+# to view and edit late
+cmd: ansible-vault view secret_file.yml 
+> it will open encrypted file 
+
+# edit ansible-vault secret_file.yml file 
+cmd: ansible-vault edit secret_file.yml 
+- it tell ansible-vault to edit this secret file 
+
+
+# if have already playbook then make it encrypted
+cmd: ansible-valut encript vars.yml 
+
+# decript a file back in plain text 
+cmd: ansible-vault decript vars.yml 
+
+# change the vault key 
+cmd: ansible-valut rekey vars.yml 
+
+
+# Alternative of ansible-vault 
+- HashiCorp Vault 
+- AWS secret manager
+- Azue key vault
+- Google secret manager 
+- CyberArk

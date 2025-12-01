@@ -1,0 +1,338 @@
+# Bash is used to write scripts and run command on linux.
+# it helps automate tasks, manage systems operations, and boost productivity.
+
+# Understanding shell
+
+> A shell is a text-based interface that let you talk to your computer
+
+> There are different types of shell, but Bash (Bourne Again SHell) is the most popular because it's powerful and easy to use.
+
+# Types of shell 
+- Bourne Shell (sh) : The original unix shell, developed by Stephen Bourne 
+- C shell (csh)     : known for its C-like syntax, popular for interactive use.
+- Koren Shell (ksh) : combines features of sh and csh, offering advance scripting capabilities.
+- Bash (Bourne Again Shell) : An improved version of sh, with additional features like commands hostory and tab completion.
+
+
+# Why use bash 
+- it is widely available on Unix/Linux systems, making script portable.
+- support powerful features, including loops, conditionals, and functions.
+- provides command history and tab completion for ease of use.
+- can be integrated with other Unix/Linux tools for automation.
+
+# practical uses of bash
+> System administration use Bash for:
+- Automate tasks
+- System operations
+- Process data
+
+> Developer use Bash for:
+- Build automation
+- Testing
+- Development
+- Data processing and manipulation
+
+# Setting up bash
+> most Unix/Linux systems come with Bash pre-installed.
+> To check if Bash is installed, open terminal and type 
+
+> terminal commands
+cmd: bash --version
+
+# run script file by cmd 
+cmd: ./myfile.sh 
+or
+cmd: bash myfile.sh 
+
+# Common Bash Commands 
+> bash commands are how you interact with the operating system and perform tasks.
+
+> Common commands
+- ls   : list dictionaly content
+- cd   : change the current directory
+- pwd  : print the current working directory
+- echo : display a line of text 
+- cat  : concatenate and display files 
+- cp   : copy files and directory 
+- mv   : move or rename file
+- rm   : delete files or directory
+- touch: create empty files or update its time 
+- mkdir: create a new folder
+- ps   : report snapshot of current process
+
+
+# Networking
+> using the 'ping' command
+- the pint cmd is used to send ICMP ECHO_REQUEST to network host.
+- its a useful tool for checking network connectivity and diagnosing network issue.
+
+# Basic uses
+> the ping a host, use like 'ping hostname'  (ping google.com)
+
+cmd: ping google.com 
+cmd: ping facebook.com
+
+
+# Options for 'ping'
+> the 'ping' command has options to change hot it work.
+
+> -c : send a specific number of ping requests (insteac of -c use -n for windows)
+cmd: ping -n 4 google.com
+
+> -i : wait a specific number of seconds between sending each packet
+cmd : ping -i 3 google.com  # useful for reducing network traffic 
+
+> Set the IP Time To Live (TTL)
+> -t : this options allows you to set up IP Time To Live (TTL)
+cmd: ping -t 64 google.com
+
+
+
+
+# Scripting 
+> Bash Syntax for Scripting
+
+- bash scripts are sequence of commands execute by the bash shell, they automate tasks and can be used to perform complex operations, understanding bash syntax is crucial for writing effective scripts.
+
+
+# Basic Syntax 
+> Basic rule for using Bash in scripts...
+
+- comments : comments start with # and bash ignore them
+# This script prints a greeting message
+echo "Hello, World!"
+
+- command order : commands run one after the other, from to bottom
+echo "First command"
+echo "Second command"
+
+- semicolons: ";" to run multiple commands on the same line 
+echo "This is a test"; echo "This is another test"
+
+# ====================================================================
+# Create a bash script
+> to create a script start with the shebang "#!/bin/bash"  on top, followed by the path to bash, usually '/bin/bash'.
+  make sure script has execute permission. 
+
+> To run .sh file in terminal, 2 way to execute/run file 
+cmd: bash myfile.sh 
+or
+cmd: ./myfile.sh
+
+Example: simple basic script
+
+#!/bin/bash
+# this will print the message
+echo "Hello Bash Scripts"
+
+cmd: bash myfile.sh   /   ./myfile.sh 
+
+
+# Varible store data that your scripts can use, assign using the '=' without spaces 
+
+#!/bin/bash
+
+name="Sandeep"
+echo "Hello, $name"
+
+cmd: bash myfile.sh 
+result will: Hello, Sandeep
+
+
+
+# Bash Variables
+> Understand Variables in Bash
+- Variables in Bash are used to store data that can be used and manipulated throughout your scripts or command-line 
+  session. Bash variable are untyped, means that can hold any type of data. 
+
+
+# Declaring Variables 
+> Variables are declared by simply assingned a value to a name. there should be no spaces around the equal sign: 
+
+- variable_name=value   # this is the syntax for assign a variable with no space arround the equal sending
+- to access a value fo a variable, prefix it with a doller sign $variable_name
+
+Example: scripts
+
+#!/bin/bash
+name="Sandeep"
+echo "Hello, $name"
+
+or
+name="John Doe"
+echo "Hello $name"
+
+or
+number=23
+echo "The number is $number"
+
+# concatenate
+greeting="hello, "
+name="world"
+
+echo "$greeting$name"
+
+# Arithmetic
+
+num1=12
+num=33
+echo $((num1 + num2))
+
+# Bash DataTypes 
+> the section introduces the different data types available in bash scripting.
+
+- string   >  name="sandeep"
+ex: 
+   greeting="hello there"
+   name="Alice"
+   fullGreeting="$greeting, $name!"
+   echo $fullGreeting
+
+
+- integer(number)  >  count=$((4 + 4))
+ex:
+  num1=12
+  num2=11
+  sum=$((num1 + num2))   # addtion 
+  difference=$((num1 - num2))  # subtraction
+  product=$((num1 * $num2))   # multiplication
+  dell=$((num1 / num2))    # division
+  echo "Sum: $sum, Difference: $difference, Product: $product, Quotient: $dell"
+
+ 
+
+- array    > arr=(1,2,3,4,5)  # store multiples value in single variable  in round braces ()
+ex: 
+   fruits=('apple', 'banana', 'kiwi')
+   echo ${fruits[0]}   # apple
+   echo ${fruits[1]}   # banana
+   echo ${fruits[2]}   # kiwi 
+
+
+- associative array   > declare -A map; map[key]=value      = key-value data 
+- boolean  >   flag=true 
+
+
+
+# Operators
+> this section provides an overview of operators used in bash scripting. including comparision, string, arithmetic, logical, and the file test operator. 
+
+> Comparision Operators
+*  -eq : equal to
+*  -ne : not equal to
+*  -lt : less than
+*  -gt : greater than
+*  -ge : greater than or equal to
+
+> String Comparision Operators
+*  =   : equal to
+*  !=: : not equal to 
+*  <   : less than, in ASCII alphabetical order
+*  >   : greater than, in ASCII alphabetical order
+
+
+# Arithmetic operator 
+*  +  : Addition
+*  -  : subtraction
+*  *  : multiplication
+*  /  : division 
+*  %  : modulus  (reminder of division)
+*  for exponention, use external tool like 'bc' or 'awk'
+
+# Logical Operators
+*  &&  : logical AND 
+*  ||  : logical OR
+*  !   : logical NOT
+
+
+# file test operator
+*  -e  : check if a file exists 
+*  -d  : check if directory exists 
+*  -f  : check if file is regular file 
+*  -s  : check if a file is not exist 
+
+
+
+# Bash if..else statement (blocks)
+> using if..else statement in bash 
+- this section explains how to use conditional statement in bash scripting 
+
+> if statement 
+- if statement, allow you execute code based on a condition. if the condition is true, the code block will run.
+
+- The condition is enclosed in square bracket  [ ], and statement ends with 'fi', which is 'if' spelled backword,
+   making the the endo 'if' block
+
+   Ex: if statement 
+
+        num=5
+        if [ $num -gt 10 ]
+        then 
+          echo "Number is greater than 10"
+        fi
+
+        or
+
+        if [ $num -gt 10 ]
+        then
+          echo "Number is greater than 10  
+        else
+          echo "Number greater that 10"
+        fi 
+
+
+# Elif statement
+> elif statement allow you to check multiple condtions in a sequence, if the condition is false, the next one is checked 
+
+> the "elif" keyword stand for "else if", and the statement still ends with 'fi'.
+
+> then  keyword 
+- Start commands to execute if the if condition is true
+- Runs only if the first condition is true
+
+
+if [ $num -gt 0 ]
+then 
+  echo "Number is positive"
+elif 
+then 
+  echo "Number is negative"
+else 
+  echo "Number is zero"
+fi      
+
+
+# Bash Loops 
+> Using bash loops 
+- this will cover the uses of bash loops in the scripting, including for lool, while loop and until loop 
+
+> for loop 
+- for loops allow you to iterate over a list of items or a range of numbers. they are useful for repeating task         a specific number of items.
+
+
+> The "for" keyword is followed by a variable name, a range of values, and 'do' keyword, which marks the start of the loop block. 
+
+# for loop Example
+
+for i in {1..5}
+do
+  echo "Iteration $i"
+done  
+
+
+# while loop 
+count=1
+while [$count =le 5]
+do
+  echo "Count $count"
+  ((count++))
+done   
+
+
+# functions
+
+# Defining functions in bash, use the following syntax, the function name is followed by parameters, and the function body is enclosed in curly braces,
+
+my_function() {
+  echo "Hello function!"
+}

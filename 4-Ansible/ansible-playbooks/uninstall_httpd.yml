@@ -1,0 +1,9 @@
+---
+- name: Remove httpd package from remote servers
+  hosts: all
+  become: yes
+  tasks:
+   - name: uninstall httpd package
+     yum:
+      name: httpd
+      state: absent

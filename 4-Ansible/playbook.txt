@@ -1,0 +1,287 @@
+# Ansible Playbook
+
+# What is Ansible Playbook
+> A playbook is a YAML file in ansible where you define what tasks you want ansible to perform on which server. 
+> Its basically a instruction manual for automation
+> Install running one command at a time like (using ansible -m), a playbook allows you to run multiple tasks in sequence organized and reusable. 
+
+> we can give any name for playbook but in the extension name alway yml or yaml so it define as asible-playboo, ex: (any_name.yml)
+
+> The two main section in a playbook. 
+- target (host/nodes): which server(target) to run.
+- tasks : what action to run on those servers. 
+
+Example :  
+---      # this defnine the section 
+# first task 
+- name: my first playbook    # give any name for task 
+  hosts: webserver           # hosts/node  group name 
+  become: yes                # srun task with sudo privileged
+  tasks:                     # it shows what do you want to do 
+    - name: install httpd    # task name 
+      yum:                   # module name (choose module)
+        name: httpd          # httpd web server
+        state: present       # present means install 
+
+# second task 
+    - name: start httpd service # start service 
+      service:               # module name 
+        name: httpd          # what to start choose package
+        state: started       # this state will start service 
+
+# end tasks 
+
+# why playbook start with (---)
+- (---) is a yaml convention
+- it tell the parser "this is the state yaml document"
+- optional but strongly recommended for clarity
+
+> why there's another (-) dash gith after 
+---
+  - name: <name-of-the-task> 
+> the first (-)dash after (---) marks the start play: A playbook can contain multiple plays, so each starts with a dash 
+> Each task is an item in a list. In YAML lists are represent with (-)
+
+# List and Directory in yaml playbook 
+- yaml represent data in list and Directory
+- list: order collection of an items (array) and each item start with (-)
+- dictionary: key:value pairs (like an object) key-value format 
+- ansadm9in (root) main server 
+# ====================================================== #
+
+
+# Start creating playbooks Directory
+# create a playbook name like "create_user.yml" 
+cmd: sudo vi create_user.yml 
+(inside file)
+---
+- name: create a user name 
+  hosts: all 
+  become: true / yes     # choose any one 
+  tasks:
+  #--- task one 
+    - name: create first user 
+      user:
+        name: raj
+
+  #--- task two 
+    - name: create second user 
+      user: 
+        name: jay
+#--- end file ---# 
+
+# to run this playbook 
+cmd: ls 
+cmd: ansible-playbook create_user
+> this will automatically create user 
+
+# The inventory file in the location (/etc/ansible/<hosts>) called hosts inventory file 
+- see ansadmin(root user) normal user in the yml file 
+
+# ansible.cfg file is used for ignore warning /etc/ansible/<ansible.cfg>
+
+# ====================================================== #
+
+# create a new file in all nodes 
+cmd: vi create_file.yml 
+---
+- name: create a new file 
+  hosts: all
+  become: true 
+  tasks:
+
+  # task one 
+   - name: creating file 
+     file: 
+       path: /home/ansadmin/demofile 
+       state: touch    # or mkdir any cmd to crate file/directory 
+
+# --- end playbook --- # 
+
+> to run this file 
+cmd: ansible-playbook.yml 
+> after running this commad it create file in all hosts 
+
+> verify file created or not in all hosts 
+cmd: ansible all -b -m command -a "ls"
+
+# ====================================================== #
+
+# Copy file  from main server to paste in the all hosts
+cmd: touch test.txt
+cmd: vi copy_file.yml
+---
+- name: copy file from main server to all hosts 
+  hosts: all
+  become: true
+  tasks:
+   
+   # task one 
+   - name: copy file from main, and paste to nodes 
+     copy:       # this is copy module 
+      src: /home/ansadmin/test.txt
+      dest: /home/ansadmin/
+      owner: raj          # owner of the file 'raj' user
+      maode: 0777         # gives fully permission like (CRUD) operation
+
+#---end file ---#
+
+> run plabbook file 
+cmd: ansible copy_file.yml 
+> it will copy from main server and paste into all hosts/nodes 
+> "test.txt" file is belongs to owner (use)
+
+> verify file will copied or not 
+cmd: ansible all -b -m command -a "ls"
+
+# ====================================================== #
+
+# Install a package using ".yml" file
+
+cmd: vi install_package.yml 
+---
+- name: install httpd package
+  hosts: all 
+  become: yes 
+  tasks:
+  #--- task one
+   - name: httpd package installing 
+     yum: 
+      name: httpd 
+      state: installed
+
+# --- end file --- #      
+
+> run playbook file install_package.yml 
+cmd: ansible-playbook install_package.yml <-b>   # as as root,gives root permission 
+
+- if "become: true" is not in playbook, so we mension "-b" as sudo privilegedto installed pakcage in the cmd 
+
+- if in playbook format something error so we can check before it run using cmd 
+cmd: ansible-playbook install_package.yml --check   
+
+- --check: it means check before run playbook 
+
+# verify is package installed or not 
+cmd: ansible all -b -m command -a "which httpd"
+
+# ====================================================== #
+
+
+# install multiple package at once
+cmd: vi install_multiple_package.yml 
+---
+- name: install multiple packages at a time
+  hosts: all 
+  become: true 
+  tasks:
+   - name: install multiple packages at once
+   yum:                   # ues dnf insteaf of yum 
+    name:
+     - httpd
+     - git 
+     - tree
+    state: present
+
+> run playbook 
+cmd: ansible-playbook install_multiple_package.yml 
+- it will install multiple packages 
+
+# ====================================================== #
+
+# uninstall multiple packages at a time
+cmd: vi unintall_multiple_package.yml 
+---
+- name: removes multiple packages at a time 
+  hosts: true 
+  become: yes 
+
+  vars:
+   package_to_remove:      # variable name 
+    - "httpd*"
+    - "git*"
+    - "tree*"
+
+  tasks:
+   - name: remove all defined packages
+     dnf:
+      name: "{{ package_to_remove }}" 
+      state: absent 
+
+# ====================================================== #
+
+# Uninstall package 
+cmd: vi uninstall_httpd.yml 
+--- 
+- name: uninstall httpd package 
+  hosts: all 
+  become: true 
+  tasks:
+   - name: remove package from nodes 
+     yum:
+      name: httpd
+      state: absent
+
+> run playbook 
+cmd: ansible-playbook uninstall_httpd.yml 
+> it will remove package from all nodes       
+
+# ====================================================== #
+
+# run multiple tasks at once like (install httpd) then (start service)
+
+cmd: vi httpd_install_start_service.yml 
+---
+- name: install httpd package and start then enable service 
+  hosts: all 
+  become: true 
+
+  vars:
+   httpd_service_name: httpd 
+
+  tasks:
+   # task to install httpd package 
+   - name: install httpd package 
+      dnf:
+       name: "{{ httpd_service_name }}"  
+       state: present 
+
+  # task to start and enable service 
+   - name: start and enable service 
+     service:
+      name: "{{ httpd_service_name }}"
+      state: started
+      enabled: yes 
+
+# --- end file --- #      
+      
+> run playbook 
+cmd: ansible-playbook httpd_install_start_service.yml
+
+# ====================================================== #
+
+# uninstall package stop service and removes package
+cmd: vi stop_and_remove_service.yml 
+
+--- 
+- name: stop service and removed from hosts 
+  hosts: all 
+  become: true 
+  tasks:
+  # task to stop httpd service 
+   - name: stop httpd service 
+     service:
+      name: httpd 
+      state: stopped 
+  
+  # tasks to remove service from hosts
+   - name: httpd 
+     state: removed 
+
+#--- end file --- #
+
+> run play book 
+cmd: ansible-playbook stop_and_remove_service.yml 
+> it will stopped the service and removed from hosts 
+
+# ====================================================== #

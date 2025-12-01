@@ -1,0 +1,12 @@
+# main server go inside 
+cmd: cd /etc/ansible 
+cmd: touch hosts 
+
+> inside this hosts file , add group_name or just node_ip_address
+[webserver]
+ip-172-31-24-217      # node 1
+ip-172-31-24-217      # node 2   
+
+[dbserver]
+ip-172-31-24-217      # node 1
+ip-172-31-24-217      # node 2   
