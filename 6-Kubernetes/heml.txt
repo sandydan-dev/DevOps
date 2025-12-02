@@ -1,0 +1,164 @@
+# Helm
+
+> helm is a package manager for kubernetes 
+- like for 
+  apt for ubuntu 
+  yum for CentOS
+  npm for nodejs
+  pip for python
+
+# It manages applications inside kubernetes using "Charts" = packages
+
+# A helm Chart = a folder containing YAML templates (Deployment, Service, ConfigMap, ...etc).
+
+# A Release = installed instance of a Chart.
+
+
+
+# Helm content predefind manifest, (you dont have to create manifest we just take manifest from heml )
+
+> whether you have manifest or  predefind manifest, so we dont have to do run mannually every single manifest, 
+  so using helm we can put our own manifest inside chart and by runnning helm cmd all manifest will run automtically.
+
+# Install helm 
+cmd: curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-4
+cmd: chmod 700 get_helm.sh
+cmd: ./get_helm.sh
+
+cmd: helm version   # see version 
+
+> see already downloaded repo 
+cmd: helm repo list
+
+> see deployment list 
+cmd: helm list 
+
+# see helm repository from "Artifact Hub" which explore Helm Charts from public repository
+
+# download repo from "Jenkins - Bitnami repo " and then rename it stable < jenkin-bitnami-repolink>
+
+cmd: helm repo add stable   <jenkin-bitnami-repolink>
+or
+cmd: helm repo add stable https://charts.bitnami.com/bitnami
+
+> to see downloaded repo list 
+cmd: html repo list 
+
+> to delete repo 
+cmd: helm repo remove stable 
+
+# see downloaded related pakcage 
+cmd: helm search repo jenkins 
+
+
+# Deploy mysql Chart from repo (which is download)
+
+- first download repo in system  (MySQL) 
+cmd: helm repo add stable https://charts.bitnami.com/bitnami
+
+- after downloading search related package 
+cmd: helm search repo mysql 
+
+result: stable/mysql 
+        mysql/mysql
+
+> install mysql package from downloaded repo 
+cmd: helm install <demo-name> stable/mysql 
+
+- it will install this package inside the kubernetes
+see installed list 
+cmd: helm list 
+
+result : stable/mysql   or  demo-name 
+
+
+# Uninstall deployed package 
+cmd: helm uninstall demo-name
+
+
+
+# -------------------------------------
+
+# Create own helm chart and put it to run manifest 
+
+cmd: helm create ownChart        # ownChart is a folder name Helm forlder name 
+
+# after creating chart go inside that "ownChart" inside it "templates" folder 
+only add own manifest inside the templates folder or you can delete there default manifest files add own file 
+
+cmd: cd templates
+
+cmd: rm -rf *       # it will remove all files 
+
+# move your manifest to ownChart/templates/  that folder 
+
+# then go to root 
+cmd: cd 
+
+# deploy or install our own chart usig helm 
+
+cmd: helm install mychart ownChart    (mychar is install name) and (ownChart is created chart name)
+- after running this cmd it will run the pods automatically by helm cmd
+
+# see list which we run the our own chart 
+cmd: helm list     # showing installed list adding
+
+# also see running pods 
+cmd: kubect get all  
+
+
+# to remove deployed chart 
+cmd: helm uninstall mychart    # it removes from helm list 
+
+
+
+########################################################
+
+# Monitoring tools Prometheus and Grafana 
+
+# search Artifact for "kube-prometheus-stack"  (prometheus-community)
+- it include both prometheus and Grafana
+
+cmd: helm repo add stable https://prometheus-community.github.io/helm-charts
+
+cmd: helm repo list    # showing repo list 
+
+# search prometheus related package to install for monitor 
+cmd: helm repo add stable https://prometheus-community.github.io/helm-charts   # given name 'stable" of package 
+
+# search prometheus related package which have both prometheus and Grafana
+cmd: helm search repo prometheus
+
+result: stable/kube-prometheus-stack    ( number of package )
+
+# deploy installed package based on search 
+
+cmd: helm install prometheus-sai stable/kube-prometheus-stack
+
+# so all manifestwill be deployed in that chart it will created "Pods", "service", deployment, replicas etc... 
+
+cmd: kubectl get all 
+
+-----------------------         ------------------------
+
+# There is main Pods and Services
+- Pod 
+pod/prometheus-prometheus-sai-kube-promet-prometheus-0     # pod name 
+
+- Service 
+service/prometheus-sai-kube-promet-prometheus              # service name
+
+# we can edit this service 
+cmd: kubectl edit service/prometheus-sai-kube-promet-prometheus
+- we have to edit this manifest cause we can access that tool on browser, need changes type: ClusterIP to LoadBalancer
+
+change : type : ClusterIP
+to     : type : LoadBalancer
+
+
+both for prometheus and grafana change there type ClusterIP to LoadBalancer
+
+now take grafana elastic ip and paste to browser and see grapana page
+
+default username : admin 
+default password : prom-operator

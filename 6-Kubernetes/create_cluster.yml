@@ -1,0 +1,15 @@
+# create_cluster.yml
+
+apiVersion: eksctl.io/v1alpha5     # eksctl config schema version
+kind: ClusterConfig                # cluster configuration object
+
+metadata:
+  name: devops-k8s                 # cluster name 
+  region: us-east-1                # aws region will create nodes
+
+nodeGroups:                        # node details 
+  - name: devops-ng                # node group name 
+    instanceType: t2.small         # instance type: cpu, ram uses 
+    desiredCapacity: 2             # number of node will create right now
+    minSize: 1                     # Cluster will never scale below 1 node 
+    maxSize: 3                     # Cluster will scale up to a max 3 pod

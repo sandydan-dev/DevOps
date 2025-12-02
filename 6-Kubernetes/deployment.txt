@@ -1,0 +1,234 @@
+# Deployment Object
+
+# What is Deployment object
+> A Deployment object used to manage control pods automatically.
+ - create Pods 
+ - ensure required number of pads are always running
+ - automatically replaced crashed pods to new pods
+ - it helps to update the web application without downtime
+
+# Why do we need Deployment Object ?
+
+> Ensure High Availability.
+ - if a pods crashes > Deployment object automatically create a new Pods 
+ 
+> make update safe (Rolling Updates) 
+ - you can update the container image, and kubernetes update pods one by one, without downtime
+
+> Rollback support
+ - if you deploy a wrong image > Rollback to previous version
+
+> Easy Scaling.
+ - increase or decrease number of pods 
+
+
+
+# Structure of Deployment Object 
+
++-------------------------------+
+|         Deployment            |
+|  (Manages versions & state)   |
++---------------+---------------+
+                |
+                v
++-------------------------------+
+|          ReplicaSet           |
+|  (Ensures Pod count stays)    |
++---------------+---------------+
+                |
+                v
+       --------------------
+       |        |         |
+       v        v         v
+   +-------+ +-------+ +-------+
+   |  Pod  | |  Pod  | |  Pod  |
+   +---+---+ +---+---+ +---+---+
+       |         |         |
+       v         v         v
++----------+ +----------+ +----------+
+|Containers| |Containers| |Containers|
++----------+ +----------+ +----------+
+
+# Deployment, backend it create ReplicaSet, and ReplicaSet backend create Pods automatically.
+
+
+# create a basic tamplate script for Deployment Object
+
+cmd: vi deployment.xml 
+
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: my-deployment 
+
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: myapp
+
+  template:
+    metadata:
+      labels:
+        app: myapp 
+
+    spec:
+      containers:
+        - name: myapp 
+          image: ubuntu
+          command: ["/bin/bash", "-c", "while true; do echo 'Deployment Object'; sleep 3; done"]
+          ports:
+            - containerPort: 80          
+          env:
+            - name: MYNAME 
+              value: Deployment_Object_Sandeep
+
+
+# ---------- END SCRIPT ----------- #
+
+> create or apply deployment object manifest
+cmd: kubectl apply -f deployment.yml
+
+> to go inside container 
+cmd: kubectl exec -it <pod/name> -- /bin/bash 
+
+
+# ---------------------------------------------------------------------------------------------- #
+
+
+# Kubernetes Networking (Service Object)
+
+> container have = ports 
+> pods have = IP Address (private IP)
+> kubernetes means = master and node combination, so togather we call cluster. 
+
+> localhost means = pod IP 
+
+> Kubernetes networking has call "service", it has 3 configuration.
+  vIP = virtual IP or cluster IP it called
+  Node Port 
+  LoadBalancer 
+
+
+# Default Networking 
+ - in pod containers there is default networking means connect with each other automatically.
+
+ > Service >>> (vip / cluster Ip), (NodePort), (LoadBalancer)  
+
+ > by default have port 80 for container
+ - if we loose a Pods so deployment object create new pod with different IP 
+ - and this is "vip" virtual IP use only inside the cluster.
+
+
+# create Deploymetn Object 
+cmd: vi deployment.yml 
+
+kind: Deployment
+apiVersion: apps/v1 
+metadata:
+  name: my-deployment 
+  annotations:
+    description: Deployment and Service object connect each other with port 
+
+spec:
+  replicas : 4
+  selector:
+    matchLabels:
+      obj: deployment 
+
+  template:
+    metadata:
+      labels:
+        obj: deployment
+
+    spec:
+      containers:
+        - name: c00
+          image: ubuntu 
+          command: ["/bin/bash", "-c", "while true; do echo 'Hello Pod', sleep 5; done"]
+
+          env:
+            - name: MYENV
+              value: sandeep 
+          ports:
+            - containerPort: 80
+
+    # ------- script end --------- #
+
+
+# To see web content, use static IP like virtual IP from Service object, 
+  so we need saparate manifest yml file to connect with "VIP" / Cluster IP 
+
+> create Service object manifest file 
+cmd: vi service.yml 
+
+kind: Service 
+apiVersion: v1 
+metadata:
+  name: demoservice 
+
+spec: 
+  ports:
+    - port: 80     # service port 
+      targetPort: 80
+
+  selector:
+    obj: deployment
+
+  type: ClusterIP    # specifics the service configuration like VIP/ClusterIP/LoadBalancer        
+
+
+      # ------- script end --------- #
+cmd: kubectl apply -f deployment.yml 
+cmd: kubectl apply -f service.yml 
+
+
+
+-----------------------------
+
+change the type: "ClusterIP" to "NodePort"
+
+cmd: vi service.yml 
+
+kind: Service 
+apiVersion: v1 
+metadata:
+  name: demoservice 
+
+spec: 
+  ports:
+    - port: 80     # service port 
+      targetPort: 80
+
+  selector:
+    obj: deployment
+
+  type: NodePort    # specifics the service configuration like VIP/ClusterIP/LoadBalancer        
+
+
+
+cmd: kubectl apply -f deployment.yml 
+cmd: kubectl apply -f service.yml 
+
+
+cmd: kubectl get svc  # see service list 
+
+# by using type: NodePort we can see web content outside the browser
+
+- take instance public IP and paste to browser 
+
+
+# There is a problem with "NodePort", if we loose node , it will create a new IP, so then every time we need to take 
+  new IP and see in the browser 
+
+  = to resolve this issue, there is concept call "LoadBalancer"
+  
+  - so in service.yml file change the type: LoadBalancer
+
+  - in service object, instead of "type: NodePort" change to "LoadBalancer"
+
+# run both manifest file deployment.yml and service.yml 
+
+- see External-IP and and paste into the browser 
+- also it create LoadBalancer in the aws LoadBalancer in the backend automatically
+

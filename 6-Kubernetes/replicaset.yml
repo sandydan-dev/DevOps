@@ -1,0 +1,21 @@
+kind: ReplicaSet           # it is an object 
+apiVersion: apps/v1         # and that object comes under this version 
+metadata:
+  name; myrs
+
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: myapp
+
+  template:
+    metadata:
+      labels:
+        app: myapp 
+
+    spec:
+      containers:
+        - name: rs 
+          image: ubuntu
+          command: ["/bin/bash", "-c", "while true; do echo 'Hello Replication'; sleep 4; done"]          

@@ -1,0 +1,14 @@
+kind: Pod
+apiVersion: v1
+metadata:
+  name: envadded
+
+spec:
+  containers:
+   - name: c02
+     image: ubuntu
+     command : ["/bin/bash", "-c", "while true; do echo 'Hello Pod', sleep 5; done"] 
+
+     env:
+      - name: MYNAME
+        value: Sandeep

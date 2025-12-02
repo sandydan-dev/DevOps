@@ -1,0 +1,149 @@
+# Launch EC2 Instance and attached IAM role 
+> from ec2 you will run all kubernetes/EKS cmds
+
+# Open with MobaXterm and login 
+> then install eksctl and kubectl
+
+- eksctl for creating clusters
+- kubectl for running the kubernetes container and run cmds
+
+# Structure of Kubernetes 
+[ Workstation / EC2 ]
+          |
+          v
+[ Kubernetes Master / Control Plane ]
+          |
+     ---------------------------------------------
+     |                   |                     |
+     v                   v                     v
+ [ Node 1 ]         [ Node 2 ]            [ Node 3 ]
+ (Worker)           (Worker)              (Worker)
+
+
+# Now create eks cluster using cmd 
+
+✅ METHOD 1: Create Cluster Using Command (eksctl CLI)
+cmd: eksctl create cluster --name devops-k8s --region us-east-1 --node-type t2.small
+or:  eksctl create cluster --name devops-k8s --region us-east-1 --node-type t2.small --nodes 3 --nodes-min 2 nodes-max 5
+
+> It automatically creates 
+  ✔ Creates EKS cluster
+  ✔ Creates VPC
+  ✔ Creates Node Group
+  ✔ Connects nodes to master
+  ✔ Updates kubeconfig
+
+
+✅ METHOD 2: Create Cluster Using YAML File (Config File)
+- create file "cluster.yml" and write script to create eks cluster
+cmd: vi cluster.yml 
+(inside it)
+
+/ ===== start file 
+apiVersion: eksctl.io/v1alpha5   # eks config schema version 
+kind: ClusterConfig              # it is an object of cluster configuration
+
+metadata:
+  name: devops-k8s      # cluster name 
+  region: us-east-1     # region name "north verginia"
+
+nodeGroups:              # node group details   
+  - name: devops-ng      # node group name      
+    instanceType: t2.small   # instance type: cpu, and ram uses 
+    desiredCapacity: 2       # number of node will create 
+
+// ===== end file 
+
+> run this file by cmd 
+cmd: eksctl create cluster -f cluster.yml 
+- this will take about 15-min to create nodes 
+
+
+# This will look like 
+
+           +-----------+
+           |  MASTER   |
+           +-----------+
+                |
+   --------------------------------
+   |                              |
++--------+                   +--------+
+| Node 1 |                   | Node 2 |
++--------+                   +--------+
+
+
+# all kubernetes cmd start with "kubectl"
+
+# See how many nodes are created 
+cmd: kubectl get nodes      
+> show list of nodes 
+
+# to delete cluster 
+> for file 
+cmd: eksctl delete cluster -f cluster.yml 
+
+> only delete by cmd 
+cmd: eksctl delete cluster --name devops-k8s --region us-east-1
+
+
+
+# Create Pod Object, it will create automatically container 
+cmd: vi pod1.ym 
+apiVersion: v1
+kind: Pod
+metadata:
+  name: podDev
+
+spec:
+  containers:
+    name: firstContainer
+    image: ubuntu 
+    command : ["/bin/bash", "-c", "while true; do echo 'Hello Pod', sleep 5; done"] 
+
+# ===== end file 
+- save and exit = :wq!
+
+> apply this file on nodes  
+cmd: kubectl apply -f pod1.yml 
+
+> see pod list 
+cmd: kubectl get pods
+or 
+cmd: kubectl get pods -o wide  # show full details of pod 
+
+> show all details abot the pods 
+cmd: kubectl describe pod/<podname>
+
+> show logs which running on containers 
+cmd: kubectl logs -f pod/<pod_name>
+
+# if we have multiple containers inside pod and want to see specific container data 
+cmd: kubectl logs -f <pod_name> -c c00 
+
+
+# ADD ENV data to container 
+cat pod3.yml
+kind: Pod
+apiVersion: v1
+metadata:
+  name: envadd
+
+spec:
+  containers:
+   -  name: c02
+      image: ubuntu
+      command: ["/bin/bash", "-c", "while true; do echo 'Added ENV';sleep 3; done;" ]
+      env:
+       -  name: MYNAME
+          value: Sai
+------ end script ------
+
+> go inside the container and 'echo' env to see value 
+cmd: kubectl exec -it envadd -c c02 -- /bin/bash 
+
+> after go inside the container type cmd to see env value 
+cmd: echo $MYNAME 
+result: Sai 
+
+> without go inside container see ENV data list 
+cmd: kubectl exec -it envadd -- env 

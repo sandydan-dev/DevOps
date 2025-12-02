@@ -1,0 +1,28 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: my-deployment
+
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: myapp
+
+  template:
+    metadata:
+      labels:
+        app: myapp
+
+    spec:
+      containers:
+        - name: my-deployment
+          image: ubuntu
+          command: ["/bin/bash", "-c", "while true; do echo 'Deployment Object'; sleep 3; done"]
+
+          ports:
+            - containerPort: 80
+
+          env:
+            - name: MYNAME
+              value: Deployment_Object_Sandeep  

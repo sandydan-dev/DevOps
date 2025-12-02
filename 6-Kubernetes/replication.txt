@@ -1,0 +1,78 @@
+# What is Replication in kubernetes ?
+- Replication = running multiple replicas (copies) of the same pod to ensure high availability.
+- kubernetes always tries to maintain the number of of Pods which we define.
+- if Pods crashes, kubernetes automatically create a new one.
+
+Example:
+  ( if you run only one pod, and it goes-down > your app goes DOWN. )
+  ( if you run 2 replicas, and one Pod goes down > 2 pods still serve traffic. )
+     kubernetes will create a new Pod to keep total count = 2
+     This is a Replication.
+
+# Managed by Which resourse?
+> Replication contollered by.
+  - ReplicaSet 
+  - Deployment (uses ReplicaSet internally.)     
+
+
+✅ Example ReplicaSet YAML
+
+kind: app/v1
+apiVersion: ReplicaSet
+metadata:
+  name: myrs
+
+spec:
+  replicas: 3           # Number of pods (copies) > Replication 
+  selector:             # match with labels
+    matchLabels:
+      app: myapp
+
+  template:
+    metadata:
+      labels:
+        app: myapp
+
+    spec:
+      containers:
+        - name: c1
+          image: ubuntu       
+
+# ---------------  end script -------- #
+
+# what its mean:- 
+ - replicas: 3 > keep 3 identical Pods always
+ - if 1 pod will die, RS will create a new one 
+ - if we delete 2 pods monually, RS will recreate them 
+ - if we scale to 5, it will create more.
+
+🟣 Why Replication is Important?
+ - High Availability    =  Application stays up even if pods fails
+ - Load Balancing       =  Traffic can be shared across multiple pods 
+ - Auto Healing         =  lost pod recreated automatically
+ - Scaling              =  Can increase/decrease replicas anytime
+
+# command to Scale Replicas 
+cmd: kubectl scals rs myrs --replicas=5
+ - this will create 5 replicas 
+
+
+# Why ReplicaSet is better:
+ - supports matchLabels + matchExpression (set-based)
+ - works with Deployment (object)
+ - better scaling and rolling update supports 
+ - powerful selectors
+ - used inside Deployment object 
+ - recommended by kubernetes 
+
+# Deployement (highest level) 
+ - Deploymenet > manage ReplicaSet > manage Pods 
+ > this is why we normally create Deployement object, not ReplicaSet
+
+# After creating pods (replicas)
+> we can go inside it by cmd 
+cmd: kubectl exec -it myrs-2k3j3 -c rs -- /bin/bash
+
+- rs : means container name 
+- myrs-2k3j3 : means pod name 
+- (--) : means separators 

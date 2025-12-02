@@ -1,0 +1,13 @@
+kind: Pod 
+apiVersion: v1 
+metadata:
+  name: nodelabelpod
+
+spec:
+  containers:
+    - name: nodeselect 
+      image: ubuntu 
+      command: ["/bin/bash", "-c", "while true; do echo 'LABELS AND SELECTORS'; sleep 3; done "]
+
+  nodeSelector:     # choose specific node/slave
+    mynode: saidemy 

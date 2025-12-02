@@ -1,0 +1,120 @@
+# What are labels ?
+
+Labels = Tags for kubernetes objects
+> Key:value pairs attached to kubernetes object like:
+  - Pods
+  - Deployments 
+  - Services
+  - ReplicaSets
+  - Nodes
+
+> Example or Lables:
+  metadata:
+    name: testpod
+    labels:
+      app: myapp   # label name 'myapp'
+      env: dev 
+
+ - Here : -
+ app=myapp
+ env=dev 
+
+# Purpose of labels ...
+  - to group related objects
+  - to identify objects 
+  - to filter object (kubectl, services, deployments)
+  - to select pods for service/replicaset 
+
+> Its like a sticker you put on boxex so you can pick up the correct box later.
+
+
+# What are Selectors ?
+selectors = Rules to match Labels 
+
+- A selector tell kubernets --
+  - ReplicaSeet
+  - Deployments
+  - Service 
+  - Job
+  - NetworkPolicies
+
+> Example: --- 
+  selector:
+    app: myapp 
+
+ >> this service will connect only on Pods having
+
+  labels:
+    app: myapp 
+
+# ------------------------------------------------ #
+
+
+# create pod and add 'labels and selectors'
+
+cmd: vi label_selector.yml
+
+kind: Pod
+apiVersion: v1
+metadata:
+  name: labelpod1
+
+  labels:
+    day: fri
+    class: kubernetes 
+
+spec:
+  containers:
+   - name: resource1
+     image: ubuntu
+     command: ["/bin/bash", "-c", "while true; do echo 'LABELS AND SELECTORS'; sleep 3; done "]
+
+# --------- end script -------- #
+
+> run this file 
+cmd: kubectl apply -f label_selector.yml 
+
+> to see those pods having any one lables 
+cmd: kubectl get pods --show-labels 
+
+> add label to pod by cmd 
+cmd: kubectl label pods <pod/name> course=devops
+
+> remove label from pod 
+cmd: kubectl label pod <pod/name> course-
+
+> delete pod based on the labels
+cmd: kubectl delete pods -l 'day in (fri, sat)'
+
+
+# Select particular node, having label (nodeSelector), choose label to give node to create resourse(pod) in that node.
+
+cmd: vi nodelabel.yml 
+kind: Pod 
+apiVersion: v1 
+metadata:
+  name: nodelabelpod
+
+spec:
+  containers:
+    - name: nodeselect 
+      image: ubuntu 
+      command: ["/bin/bash", "-c", "while true; do echo 'LABELS AND SELECTORS'; sleep 3; done "]
+
+  nodeSelector:     # choose specific node/slave
+    mynode: saidemy      
+
+# ---  end script ---- # 
+
+> apply the file nodelabel.yml 
+cmd: kubectl apply -f nodelabel.yml
+
+> so above file state is still pending we have to run manually by choose node with labels 
+cmd: kubectl get nodes 
+result: showing node list 
+
+> now choose node to run the pod 
+cmd: kubectl label nodes <node-ip> myname=saidemy
+result : now pod will create with label and state will be 'ready'
+
+
