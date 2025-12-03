@@ -17,8 +17,7 @@ spec:
     spec:
       containers:
         - name: my-deployment
-          image: ubuntu
-          command: ["/bin/bash", "-c", "while true; do echo 'Deployment Object'; sleep 3; done"]
+          image: nginx:latest
 
           ports:
             - containerPort: 80
