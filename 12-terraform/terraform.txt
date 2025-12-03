@@ -1,0 +1,384 @@
+# ------------ Terrform ------------ #
+
+✅ What is Terraform?
+- Terraform is a Infrastructure as Code (IaC) tool used to create, manage, and automate AWS resource using code 
+  instead of clicking manually in the AWS console.
+
+- we use file xtension ".tf" which define the terraform file, to build aws resources.
+
+🟩 Everything is written as code ...
+ - we can define : EC2, VPC, S3, RDS, LOAD BALANCER, IAM all services can use in configuration file
+
+ - create one terraform file > use again for dev, test, production.
+ 
+ > Automate full AWS setup
+  - we can deploy full architecture (EC2 + VPC + S3 + LB) in a few second.
+
+ > Multi Cloud  > same tool work with 
+  - AWS 
+  - AZURE
+  - GOOGLE CLOUD 
+
+
+
+✅ Architecture Diagram — Terraform Managing AWS
+
+                   ┌─────────────────────────┐
+                   │       Developers         │
+                   │   (Write .tf files)      │
+                   └─────────────┬───────────┘
+                                 │
+                                 ▼
+                     ┌────────────────────┐
+                     │  Terraform CLI     │
+                     │ (init, plan, apply)│
+                     └──────────┬─────────┘
+                                │
+                                ▼
+                    ┌──────────────────────┐
+                    │   Terraform Core     │
+                    │  (Reads & processes  │
+                    │   configuration)      │
+                    └──────────┬───────────┘
+                               │
+                               ▼
+                 ┌────────────────────────────┐
+                 │   Provider Plugins (AWS)   │
+                 │  e.g. aws_vpc, aws_ec2,    │
+                 │       aws_s3, aws_rds      │
+                 └──────────┬─────────────────┘
+                            │
+                            ▼
+                 ┌────────────────────────────┐
+                 │         AWS API            │
+                 │ (Terraform talks directly  │
+                 │    with AWS services)      │
+                 └──────────┬─────────────────┘
+                            │
+                            ▼
+      ┌──────────────────────────────────────────────────────┐
+      │                      AWS Cloud                        │
+      │                                                      │
+      │   ┌────────────┐   ┌──────────────┐   ┌──────────┐ │
+      │   │   VPC       │   │   EC2         │   │   S3     │ │
+      │   │ (Subnets)   │   │ (Servers)     │   │ (Storage)│ │
+      │   └────────────┘   └──────────────┘   └──────────┘ │
+      │                                                      │
+      │   ┌────────────┐   ┌──────────────┐   ┌──────────┐ │
+      │   │ RDS DB      │   │ LoadBalancer │   │ IAM Roles │ │
+      │   └────────────┘   └──────────────┘   └──────────┘ │
+      │                                                      │
+      └──────────────────────────────────────────────────────┘
+
+
+🟦 Flow of Terraform Commands
+
+terraform init  = download provider plugins (AWS)
+terraform plan  = show what changes will happen 
+terraform apply = create/update aws services 
+terraform destroy =  remove all resources 
+
+
+🟩 Detailed : Terraform Project Structure
+
+terraform-project/
+│
+├── main.tf          → Provider + resources
+├── variables.tf     → All input variables
+├── outputs.tf       → Output values like IPs
+├── modules/         → Reusable modules
+│     ├── vpc/
+│     ├── ec2/
+│     └── rds/
+└── terraform.tfstate→ State file (tracks AWS resources)
+
+
+
+🟩 Terraform Module Architecture (Recommended Pattern)
+
+root/
+│
+├── main.tf
+├── variables.tf
+├── outputs.tf
+├── modules/
+│    ├── vpc/
+│    │    ├── main.tf
+│    │    ├── variables.tf
+│    │    └── outputs.tf
+│    │
+│    ├── ec2/
+│    │    ├── main.tf
+│    │    ├── variables.tf
+│    │    └── outputs.tf
+│    │
+│    └── rds/
+│         ├── main.tf
+│         ├── variables.tf
+│         └── outputs.tf
+
+
+
+
+🟦 State Management (Very Important)
+
+                   ┌─────────────────────────┐
+                   │   terraform.tfstate     │
+                   │  (Maps real AWS → code) │
+                   └──────────┬──────────────┘
+                              │
+                              ▼
+            ┌─────────────────────────────────┐
+            │ Local State or Remote S3 Backend│
+            │ + DynamoDB (state locking)      │
+            └─────────────────────────────────┘
+
+
+🟦 How Terraform Interacts with AWS for Each Service
+
+Terraform Code  →  AWS Provider  →  AWS Service
+
+aws_vpc          ─────────►  VPC API              ─────────►  Creates VPC + Subnets + IGW + Routes
+aws_subnet       ─────────►  Subnet API           ─────────►  Creates Public/Private Subnets
+aws_internet_gateway ─────► IGW API               ─────────►  Internet Connectivity
+aws_route_table  ─────────►  Route Table API      ─────────►  Adds Routes (IGW / NAT)
+
+aws_instance     ─────────►  EC2 API              ─────────►  Launch EC2 machines
+aws_security_group ───────►  SG API               ─────────►  Creates security rules
+
+aws_lb           ─────────►  ELB API              ─────────►  Create ALB/NLB Load Balancers
+aws_lb_target_group ─────►  Target Group API      ─────────►  Register EC2 Targets
+
+aws_s3_bucket    ─────────►  S3 API               ─────────►  Create S3 Buckets
+aws_s3_bucket_policy ─────► S3 Policy API         ─────────►  Manage bucket permissions
+
+aws_rds_instance ─────────►  RDS API              ─────────►  Creates MySQL/Postgres DB
+aws_db_subnet_group ─────►  RDS Subnet API        ─────────►  DB Subnets
+
+aws_iam_role     ─────────►  IAM API              ─────────►  Create IAM Role
+aws_iam_policy   ─────────►  IAM Policy API       ─────────►  Attach JSON Policies
+
+aws_lambda_function ─────► Lambda API             ─────────►  Create Lambda Function
+
+aws_cloudwatch_log_group ─► CloudWatch API        ─────────►  Create Log Groups
+
+aws_route53_record ───────► Route53 API           ─────────►  Create DNS Records
+
+aws_eks_cluster  ─────────► EKS API               ─────────►  Create Kubernetes Cluster
+
+aws_sqs_queue    ─────────► AWS SQS API           ─────────►  Create Queues
+aws_sns_topic    ─────────► AWS SNS API           ─────────►  Push Notifications
+
+aws_dynamodb_table ───────► DynamoDB API          ─────────►  Create NoSQL Tables
+
+
+
+# Install Terraform in windows 
+cmd: npm install terraform     # it willdow or 
+
+
+# Go to "terraform.io" official site 
+- search for "windows"   > take binary download "386..." tar file 
+
+- extract terrafrom file only on "C://" drive with "terraform" name 
+
+- if terraform install then verify by there version 
+cmd: terraform -version 
+
+- see terraform cmd list 
+cmd: terraform 
+
+
+# Setting up terraform path for, to access terraform related cmd anywhere in the system.
+
+- AWS cli tool  (download)
+- it will help to manage AWS Infrastructure through cli. its kind of agent( aws cli)
+
+> download aws cli to (msi file)
+
+# setup env aws path 
+- C:\Program Files\Amazon\AWSCLIV2
+- in system vaiable add this into the path 
+- then verify aws --version anywhere 
+
+- to verify aws is installed or not 
+- to go command prompt tool 
+cmd: aws --version
+
+result it cli tool downloaded then it shows aws version 
+
+#####################################################
+
+
+# Create IAM user for terraform to authenticate any user (user/role)
+
+- IAM service 
+- user  (create)
+Specify user details
+- user name: terraform-user
+- next 
+Set permissions
+- Attach policies directly 💹
+- Permissions policies : AdministratorAccess
+- next 
+- create user 
+
+> Go inside created user 
+> Security credentials 
+  - Access keys (0)  : create access key  💹
+    - use case 
+      - Command Line Interface (CLI)
+      - next 
+      - create access key
+      - download .csv file and   
+      - Done 
+
+
+# AWS cli,  every time create new file it need "Access key" and "Secret Key", it is messy or headache.
+  so instead of this headache, we setup Environment Variables       
+
+  - go to Environment vaiable
+    - system variable 
+    - create new
+
+    variable name: AWS_ACCESS_KEY_ID
+    variable value: AKIA4UCHAAQPZUMRASVE
+
+  - for secret access key add (new variable)  
+    variable name: AWS_SECRET_ACCESS_KEY
+    vaiable value : 13G2qKlVD1Vjf3+ptmt8u//QUb5NLoxkm6wV84x7
+
+  - we can add aws region in env so by default it will start from that region 
+    variable name: AWS_DEFAULT_REGION
+    variable value: us-east-1
+
+  - apply + okay     
+
+# Open command prompt 
+cmd: echo %AWS_ACCESS_KEY_ID%
+
+cmd: echo %AWS_SECRET_ACCESS_KEY%
+
+cmd: echo %AWS_DEFAULT_REGION%
+
+> for this env setup, it means if I launch any Instance without mentioning region, by default launch in North Virginia region 
+
+- cause we setup ENV variable (system varible)
+- so by default when open aws instance if shows only default Virginia region. 
+
+
+# Make a folder for EC2 instance 
+cmd; mkdir EC2_Instance 
+
+- Recommended file name for terraform, is "main.tf"
+
+- create a main.tf file for terraform inside folder 
+cmd: touch main.tf 
+
+> Inside this file, to launch an instance whatever required things are like... 
+ 
+  - we have to give 
+    - region name 
+    - instance name 
+    - instance ami id 
+    - key-pair
+    - security-group 
+    - instance-type 
+    - hard disk details 
+
+    so, everything we have to give 
+
+# Keep ready key-pair in instance (.pem file)
+name: k8sKey.pem 
+
+- a key pair in aws is just a way to authenticate to ec2 instance 
+
+- use a single aws key pair for multiple instances, regardless of which ami (ubuntu, amazon linux, windows) etc. 
+
+- a public key stored by aws 
+- a private key (.pem) file that we have downloaded
+- and use to connect (ssh for linux, rdp) for windows password description
+
+- without key-pair (.pem) file you cont connect to instance using that key 
+- key-pair is region Specific. 
+
+
+# Write / create instance in "main.tf" file 
+
+💹 Initialize Terraform
+  Downloads AWS provider & sets up working directory:
+  
+cmd: terraform init 
+    - it is a first cmd, you run in any new terraform project or when you add new provides/modules 
+    - in order to execute that file, regulated dependencies are downloaded, will be installed automatically.
+    - means required plugins installed (.terraform)
+    - this runs only once in that folder, in folder you will see .terraform file 
+
+    .terraform
+    .terraform.lock.hcl
+    in that folder where initialize terraform. 
+
+💹 Validate Terraform Code 
+  - Check systax errors 
+
+cmd: terraform validate
+      
+
+💹 Format terraform code 
+   - makes ".tf" file look cleen and correct
+cmd: terraform fmt         # fmt means format 
+
+
+💹 Generate Execution Plan 
+   - Shows what Terraform will create/update/delete 
+
+cmd: terraform plan 
+
+
+💹 Apply terraform scripts 
+  - Actually creates resource (EC2, VPC, etc...)
+
+cmd: terraform apply 
+- terraform will ask 
+  - Enter a value: yes 
+
+or we can skip this above 
+cmd: terraform apply -auto-approve         # this will not ask confirmation to yes 
+
+
+
+💹 Destroy Resouces 
+  - Delete everything created by terraform: 
+
+cmd: terraform destroy -auto-approve 
+
+
+💹 Terraform state commands 
+  - show current state 
+
+cmd: terraform state list
+
+
+💹 Show details of resource 
+cmd: terraform state show aws_instance.myInstance
+
+💹 display the current state of our Infrastructure
+cmd: terraform show
+
+💹 Terraform output commands 
+- if define outputs 
+cmd: terraform output 
+
+
+💹 terraform version 
+- check version 
+cmd: terraform version 
+
+💹 terraform providers 
+- show installed providers 
+cmd: terraform providers
+
+💹 terraform clean up (optional)
+- removes downloaded plugins 
+cmd: terraform init -migrate-state 
+
