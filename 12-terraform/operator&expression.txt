@@ -1,0 +1,116 @@
+# Terraform Operator and Expression
+(list , map, loops) = operators
+
+# In terraform operators are used in expression, like (conditon, arithmetic, string, join, comparision, etc) to manipulate value dynamically.
+
+# Terraform support several type of operator
+
+# Arithmetic : used for mathematical operation on numbers
+ > + ,- , /, *, % 
+
+# Comparision Operator :  used for compare two values
+> == equal to
+> != not equal to 
+> >  greater that 
+> < less than 
+> >=  less than equal to 
+> <=  greater than equal to 
+
+# logical operator : use to combine or negate expression | boolean value get 
+> &&   logical AND  
+> ||    logical OR 
+>  !    logical NOT 
+
+
+# String Operator : used for joining or formatting string 
+> "string value"
+> """ string value """
+> interpollation   :  "${var.user}"
+> instance         : "web-server"
+
+# join {}
+
+function based concatenation 
+join("-", ["web","server"])    , result will be : web-browser
+
+
+# Conditional Operator : used for inline "if-else" logic 
+
+> operator 
+- condition {true-value : false-value}
+
+> ternary 
+- var.env == "prod" ? "t2.small" : "t3.micro"
+
+conditional Operator (for lists/maps/sets/)
+- these work on complex types like list and maps
+
+
+Example: 
+
+provider "aws" {
+    region = "us-east-1"
+}
+
+variable "instance_type" {
+    type = list(string)      // ["t2.small", "t2.micro", ...so on]
+    default = ["t2.micro", "t2.small", "t2.medium"]
+}
+
+
+# EC2 Instance 
+
+resource "aws_instance" "my_instance" {
+    ami            = "ami-23lkjlkj3434"
+    instance_type  = var.instance_type[1]
+    key_name       = "k8sKey"
+
+    tags = {
+        Name = "my_instance"
+    }
+}
+
+# Maps 
+
+provider "aws" {
+    region = "us-east-1"
+}
+
+// variable instance tga names 
+
+variable "instance_tag" {
+    type = map(string)
+    default = {
+        key = "value"
+        Name = "sandeep"
+        Environment  = "DevOps"
+    }
+}
+
+
+resource "aws_instance" "my_instance" {
+    ami = "ami-id"
+    instance_type = "t2.small"
+
+    tags = {
+        Name = var.instance_tag
+    }
+}
+
+
+## Loops (maps)
+
+> If you launch multiple instances with differenct configuration so we use loop (map)
+
+provider "aws" {
+    region = "us-east-1"
+}
+
+    
+
+resource "aws_instance" "my_instance" {
+    ami = "ami-id"
+    instance_type = "t2.small"
+    key_name = "k8sKey"
+
+}
