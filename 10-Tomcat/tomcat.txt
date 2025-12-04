@@ -1,6 +1,6 @@
 # Tomcat
 
-✅ What is Tomcat?
+✅ What is Tomcat. ?
 - Tomcat is a open source webserver and servlet container deployed by the Apache Tomcat Foundation.
 
 👉 Tomcat = java webserver + servlet/jsp engin
