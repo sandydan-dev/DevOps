@@ -52,8 +52,10 @@ cmd: git config --list
 # install Java jdk in windows
 > go to "oracle java" main site
 
-> see windows section  with this link download the java sdk
+> see windows section  with this link download the java sdk  (download, tap this link)
 > x64 installer:   https://download.oracle.com/java/21/latest/jdk-21_windows-x64_bin.exe
+
+> install in the laptop
 
 # after installing type cmd to check version java (cmd prompt)
 cmd: java --version
@@ -215,7 +217,7 @@ cmd: git clone https://github.com/sandydan-dev/SampleWebApp.git
 cd: cd SampleWebApp
 
 # Now go inside the jenkins create JOBS
-> First Job   : Github (pulling)
+> First Job   : Github (pulling) source code pull from SCM
 > Second Job  : Ant    (Building & checking quality)
 > Third Job   : JUnit  (Tesing)
 > Forth Job   : Deploy ( Deploying )   to  Tomcat (end-product (.war file))
@@ -229,15 +231,15 @@ cd: cd SampleWebApp
 # 2: second job purpose, to build and check the quality, means creating end-product, and it have checking quality
 #    as well  
 > Second Job > (copy from : First Job) > ok
-  - under,  Build Steps : Add build steps > Invoke Ant
-  - Target : checkstyle
+  - under Build Steps : Add build steps > Invoke Ant
+  - Target : checkstyle   (like maven goal : mvn clean, clear install)
   - Aply + save
 
 # 3: third job puporse, for testing purpose, if any error are there in code or not, means checking the code quality.
 > Third Job > copy from (Second Job) > ok
-  - build steps > Targets : junit
+  - build steps > Targets : junit    (like maven goal : mvn clean, clear install)
   > Post Build Actions > add post build action : Publish JUnit test result report
-  - Test report XML's : test_calculator_junit_result.xml  (give any name <anyname>.xml)
+  - Test report XML's : TestCalculator_JUnitResult.xml  (give any name <anyname>.xml)
   - apply + save
 
 # 4: forth job purpose, we need to tomcat doors open to deployed end project (.war file inside the tomcat)
@@ -247,11 +249,13 @@ cd: cd SampleWebApp
   - open this "tomcat-users" file in (VSCODE OR NOTPAD), then
   - make some changes in this line
   <user username="admin" password="admin" roles="manager-gui,manager-script,admin" />
+  - it means, opening doors for tomcat, so jenkins can deploy the war file on tomcat. 
+ - open doors from tomcat to jenkins so easily share the .war file from jenkins to tomcat
 
 > Forth Job > Second Job : ok
-  - Build steps : > target : war  (goal)
+  - Build steps : > target : war  (goal)  (like maven goal : mvn clean, clear install) > war bigger goal
   - Post build actions : Deploy war/ear to a container
-  - WAR/EAR files : **/*.warr   (instead of name add extention only) 
+  - WAR/EAR files : **/*.war  (instead of name add extention only) 
   - Context Path : samplewebapp    (end-product name), Ex: samplewebapp.war (this is fully of name war file)
   - Containers : Tomcat 8.x Remote   (means, allows us to enter details, like tomcat machine IP,username,passwd)
     - Tomcat url : http://localhost:8080/   # tomcat server url
@@ -262,6 +266,7 @@ cd: cd SampleWebApp
 
 # After adding all Job to each other
 > we neet to inter-link all these jobs 
+
  - make as "downstream" way means 1 job > 2 job > 3 job > 4 job
 
 > go to "First Job" > open to configure > Post Build Action : Build Other projects
@@ -287,10 +292,27 @@ cd: cd SampleWebApp
   Pipeline Flow > select initial job : First Job   (strting point)
 > apply + save
 
-# for delivery pipeline
+# for delivery pipeline ( another plugin for better view)
 > create new view:
   name: DevOpsCICDPipeline2
   types: Delivery Pipeline   + create
+   - Number of pipeline instances per pipeline : 1
+
+   - Enable start of new pipeline build
+   - Enable manual triggers
+   - Enable rebuild
+
+   (select inital job, see options)
+  Pipelines
+  Components
+    - add
+      - name : anyname
+      - initial job : Firstjob
+      final job (optional)
+      - Forthjob
+
+  apply + save
+
   
 
 # Clean it up (delete step by step)
