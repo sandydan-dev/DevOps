@@ -1,0 +1,220 @@
+# SonarQube  (QA tool)
+> it is a static code analysis tool 
+
+# SonarQube is a tool that helps developers write better code by automatically checking it for Bugs, Code    Smells, technical debts, duplicate code and test coverage and other issues.
+
+- DevOps Engineer Setup
+- Developers use it
+
+
+> Bug : A mistake in the code that causes errors or crushes when the programmer runs.
+
+> code smells : A sign that code may need improvement, even if it doenst cause immediate problem.
+
+> Technical Debts : problem that arrise from quick fixes or shortcuts, in the code, leading to more work later.
+
+> Vulnerability : A security weakness in the code that could be exploited by attackers.
+
+> Duplicate Code : Repeating the same code in the different phases, making it harder to maintain.
+
+> Test coverage : A measure of how much code different, is tested by automated test, with higher coverage leading to better quality. test causes written by testers cover how much code in main folder of SRC
+
+
+
+## SonarQube : Static Code Analysis Tool
+- An open-source tool that automatically checks code quality over 27 programming languages.
+
+- Static (on code) (static code analysis) by internal team.
+
+- Dynamic (on Application) by internal team and client
+
+
+# Compound of SonarQube
+
+- SonarScanner : The tool in jenkins that seans your code (this tool and related plugins should be in jenkins).
+
+- SonarQube (package) : Its dashboard that shows the results of the code analysis
+
+- SonarServer : Its the server that hosts sonarQube and stored the data
+
+- Plugin for SonarQube : SonarQube Scanner
+
+
+
+> Login to Jenkins Instance
+  - also login to other instance
+
+> Started both Instance
+
+developer  > github  >   jenkins   > sonarqube server
+                            ^
+                        sonar-scanner
+
+
+
+# SonarQube Server > Login   (sonarcloud.io)
+ - login with github
+
+
+> Generate Authentication token 
+- its a authentication password | token for jenkins to integrate
+
+- go to myaccount + 
+ - security + generate token : enter token name
+ - generate token 
+
+> To use sonarqube token in Jenkins 
+ - go to Jenkins dashboard
+ - manager jenkins
+ - Credentials
+ - stores scoped to jenkins: global 
+
+   - credentials
+     - kind : choose (secret text) 
+     - ID : any-name  (sonar-cm)
+     - description : any
+     - create .
+
+# Now connect with Jenkins to SonarQube server
+
+> Then, after adding token to jenkins in credentials
+ - go to manage jenkins
+ - system
+ - sonarqube server
+ - sonarQube Instanllation > Add Sonarqube
+  - give sonarqub details server
+   - name: sandy-sonarqube-server
+   - sonar URL : https://sonarcloud.io/
+    - server authentication token:
+    - choose credentials : "server-cmd" as credentials
+    - apply + save
+
+
+# Then install "sonarqube scanner" tool, install this tool in Jenkins
+
+> This tool is responsible to scann the test code 
+  - manage Jenkins
+  - tools
+  - sonarqube scanner installation 
+    - add sonarqube server
+    - name: any-name (sonarqube server) - or sonar-scanner
+    - Install automatically ✅
+    - apply + save
+
+
+# Creae Organisation: Inside organisatioin we need to create project in "sonarqube"    
+ - go to sonarqube + my-account
+ - organisation
+ - creaet > create an organization
+ - create one manually
+ - enter organization details:
+   - name: sandy01
+   - key(unique) : sandy01-key  (add unique key)
+   - select plan : start free 
+   - create organization
+   - it menas inside soanrqube create organization
+    - analyze a new project
+    - display name: sandymytrends
+    - project key: sandy01-key_sandymytrend
+    - next
+    - previous version ✅
+    - create project
+
+
+# Go to MobaXterm with ec2 instance as developer
+  - create project 
+  - vi sonar-project.properties 
+    sonar.verbose=treu
+    sonar.organization=sandy01-key
+    sonar.projectKey=sandy01-key_sandymytrend
+    sonar.projectName=sandymytrend
+    sonar.language-java
+    sonar.sourceEncoding=UTF-8
+    sonar.sources=.
+    sonar.jaa.binaries=target/classes
+    sonar.coverage.jacoco.xmlReportPath=target/site/jococo/jococo.xml    
+
+for Example: 
+   organization
+     name : sandy01
+     key  : sandy01-key
+
+     analyse project
+       display name : sandymytrend
+       projectKey : sandy01-key_sandymytrend
+
+       --------------------------------
+
+# SonarQube Pipeline in Jenkins  (Developer EC2) 
+- also create jenkins file in the ec2-user of developers 
+
+cmd: vi Jenkinsfile
+
+pipeline {
+    agent any
+
+    # Environment for mavens path
+    environment {
+        PATH = "/opt/maven/bin:$PATH"
+    }
+
+    # start stages  to build and sonar-scanning test results
+
+    # statges start ----------
+    stages {
+
+        # --------- stage one to build start
+
+        stage("build") {
+            steps {
+                sh "mvn clean deploy"
+            }
+        }
+
+        # --------- stage one to build end
+
+        
+        # -------- stage for sonarqueb analysis start
+        
+        stage("SonarQube Analysis") {
+            environment {
+                scannerHome = tool "sandy-sonar-scanner"  
+            }
+
+            // sonar steps 
+            steps {
+                withSonarQubeEnv(sandy-sonarqube-server)
+            }
+
+        }
+
+        # -------- stage for sonarqueb analysis start
+
+
+
+    }
+    # stages end ---------
+}
+
+
+
+# Creae Job, after setup socanr.properties and Jenkinsfile pipeline in ec2-user (developer)
+
+  - new Job
+  - name: sandytrendjob
+  - pipeline
+  - ok
+    - Poll SCM
+    - schedule ( * * * * *)
+
+  - Pipeline
+    - definition : Pipelin script from SCM
+    - scm = git
+    - reportURL : <maven-git-repo-url>
+    - branch to build : Branch specific
+    - main
+
+    - Build Now
+
+    
+     

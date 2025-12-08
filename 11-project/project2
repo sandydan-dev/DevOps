@@ -1,1 +1,23 @@
 # Devop Project 2 CICD Pipelines
+
+> create each machine for ecah tools like 
+ - git-server (ec2)
+ - jenkins-server (ec2)   (git, java, maven, jenkins)
+ - tomcat-server (ec2)    (java, web file = .war file)
+
+
+# Create EC2 instance, name as git-server
+
+ - launch instance
+   - name     : git-server
+   - ami      : amazon-linux
+   - instance-type : t2.micro
+   - key-pair : cicd.pem          (common key-pair for all instances)
+   - sg       : SG_ALL            (common SG for all instances)
+     - description : SG_ALL
+     SSH    : (All trafic, myIP, customIP) = all trafic
+   storage : 8 GiB
+- launch instance 
+> Now "git-server" instance is ready.
+
+
