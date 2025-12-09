@@ -11,8 +11,8 @@
  - launch instance
    - name     : git-server
    - ami      : amazon-linux
-   - instance-type : t2.micro
-   - key-pair : cicd.pem          (common key-pair for all instances)
+   - instance-type : t3.micro
+   - key-pair : all_cicd.pem          (common key-pair for all instances)
    - sg       : SG_ALL            (common SG for all instances)
      - description : SG_ALL
      SSH    : (All trafic, myIP, customIP) = all trafic
@@ -20,4 +20,381 @@
 - launch instance 
 > Now "git-server" instance is ready.
 
+# Login to MobaXterm with (git-server instance)
+cmd: sudo su -     // go inside root user 
 
+> change the name of root user from [root@ip-172-31-26-152 ~]# to this [root@git-server ~]#
+
+> open file like "/etc/hostname"
+cmd: vi /etc/hostname
+ - git-server     # add your own name
+
+ then reboot the system 
+ cmd: init 6     # by giving this cmd system will reboot it
+
+
+> Now it showing root user name like "[root@git-server ~]# "
+
+# Install git package in the "git-server" instance.
+cmd: yum install git -y
+
+> configure git username and email
+cmd: git config --global user.name "sandeep"
+cmd: git config --global user.email "sandydan.dev@gmail.com"
+
+> see config list
+cmd: git config --list     # to see username and email 
+
+> now clone the repository 
+cmd : git clone https://github.com/sandydan-dev/FormFillApp.git 
+
+cmd : cd FormFillApp
+
+cmd: yum install tree -y
+
+cd: cd webapp/src/main/webapp
+cmd: vi index.jsp      # this is the content we kept
+
+
+# ------------  Git server end ------------- #
+
+# create new instance for "jenkins-server" instance 
+
+- launch instance
+  - name : jenkins-server
+  - ami  : amazon-linux
+  - instance-type : t2.medium
+  - key-pair : all_cicd.pem 
+  - select existing SG : SG_ALL 
+  - storage : 25 GiB  volume
+
+  - launch instance
+
+> also create Elastic IP for jenkins-server for static Ip given to "jenkins-server"
+
+ - Network & Security > Elastic IP's
+   - Allocate Elastic IP address
+   - Allocate
+
+   choose IP then "Associate Elastic Ip address to jenkins server
+    - choose jenkins-server instance 
+    - private ip address (for jenkins-server private ip)
+    - Associate
+
+> It will not change the public IP frequently, now it become static IP 
+
+# Login with MobaXterm to go inside the jenkins-server instance
+
+> go inside as root user
+cmd: sudo su -
+
+> change the root user name
+cmd: vi /etc/hostname
+   - jenkins-server
+
+> reboot the instance
+cmd: init 6
+
+> now the root user looks like " [root@jenkins-server ~]# "
+
+# now install package like
+- git           | 
+- java          | 
+- maven         | cmd: 
+- jenkins       | cmd:
+
+cmd: yum install git -y
+
+cmd: yum install java-21* -y 
+
+> install maven
+ > go insde "/opt" install here maven
+ cmd: cd /opt
+
+ > see official page for binary tar.gz archive file "apache-maven-<version>.bin.tar.gz" 
+   - copy this link address 
+ 
+ inside "/opt" folder install maven
+
+ cmd: wget https://dlcdn.apache.org/maven/maven-3/3.9.11/binaries/apache-maven-3.9.11-bin.tar.gz 
+
+ cmd: ls
+ result : apache-maven-3.9.11-bin.tar.gz
+
+ > now extract maven file
+ cmd: tar -xvzf apache-maven-3.9.11-bin.tar.gz
+
+ cmd: ls 
+ result apache-maven-3.9.11
+
+ > change the name of this file like "apache-maven-3.9.11" to "maven" 
+ cmd: mv apache-maven-3.9.11 maven
+ cmd: ls 
+ result : maven
+
+> go to home root user 
+cmd: cd
+
+> find java path
+cmd: find /usr/lib/jvm/java-21* | head -n 3
+result : 
+/usr/lib/jvm/java-21
+/usr/lib/jvm/java-21-amazon-corretto
+/usr/lib/jvm/java-21-amazon-corretto.x86_64   🟢 take this path
+
+
+# Lets setup environment for java and maven
+
+cmd : vi .bash_profile
+
+JAVA_HOME=/usr/lib/jvm/java-21-amazon-corretto.x86_64
+M2_HOME=/opt/maven
+M2=/opt/maven/bin
+PATH=$PATH:$HOME/bin:$JAVA_HOME:$M2:$M2_HOME
+export PATH
+
+- ESC + :wq!
+
+cmd: exit
+
+cmd: sudo su -
+
+# Now install Jenkins on "jenkins-server"
+cmd: 
+sudo wget -O /etc/yum.repos.d/jenkins.repo \
+    https://pkg.jenkins.io/redhat-stable/jenkins.repo
+sudo rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
+sudo yum install jenkins
+
+
+- now start jenkins server
+cmd: service jenkins start         # start jenkins service
+cmd: systemctl enable jenkins      # start jenkins even after server close
+
+# Now jenkins is installed and enable properly
+
+- take "jenkins-server" public IP
+- browser : 13.62.38.3:8080       # run this IP with port 8080
+
+> Now go to this path "/var/lib/jenkins/secrets/initialAdminPassword"
+  to get the jenkins secrets | password
+
+cmd: cat /var/lib/jenkins/secrets/initialAdminPassword
+result: 
+0804897662004d9c9d0a4e857312f51d            # copy this password and paste into jenkins server
+
+> Now, start using jenkins.
+
+> Now install jenkins plugins
+- Github
+- Maven Integration
+- Deploy to container
+- Publish over SSH      # it means send "war" file to other machines
+   ("Artifact Uploaders | Build Tools
+   Send build artifacts over SSH")
+
+  - Installed all plugins
+
+  # now we need to give tools address which we install in EC2 instance (MobaXterm)
+
+  > Go to jenkins dashboard > Manage Jenkins > Tools
+    > JDK Installation:
+      - name: java-21
+      - JAVA_HOME: /usr/lib/jvm/java-21-amazon-corretto.x86_64
+
+    > Git Installation  : it will take by default or,
+      if there is an error then set the path for Github path
+      cmd: which git
+      reuslt : /urs/bin/git
+
+    > Maven installations
+      name: maven_home
+      MAVEN_HOME : /opt/maven  
+
+    > apply + save  
+
+ # all setup is ready for java, git, maven, jenkins and also setup tools address
+
+ # create a new maven job
+
+ > Create new item:
+   - name: FirstMavenProject
+   - select an item type : Maven Project
+   - ok
+
+     > Source Code Management
+       - Git
+         - Repository URL : https://github.com/sandydan-dev/FormFillApp.git
+         - Branch Specifier (blank for 'any') : main
+
+         - Goals and options: clean install
+         - apply + save
+
+> now run the job : Build now         
+> after successful job see the location,
+ - Building in workspace: /var/lib/jenkins/workspace/FirstMavenProject
+   - cmd: /var/lib/jenkins/workspace/FirstMavenProject
+     cmd: cd webapp/target/
+     resutl : webapp.war     // see this file 
+
+     cmd: ls -l webapp.war
+     reuslt : -rw-r--r--. 1 jenkins jenkins 3755 Dec  9 05:36 webapp.war
+     (also see there war file download file)
+
+     cmd: date
+
+# ---------- jenkins server is end -----------  #
+
+
+# Create "tomcat-server" EC2 Instance 
+- required package for tomcat-server is
+  - tomcat
+  - java
+
+> Launch Instance
+  - name: tomcat-server
+  - ami : amazon linux
+  - instance-type: t3.micro
+  - key-pair : all_cicd.pem   # (existing key-pair)  
+  - security group : SG_ALL   # (existing SG) for all
+  - storage : 8 GiB volume
+
+  - launch instance
+
+> Assign Elastic IP to "tomcat-server"  
+ - Network & Security
+ - Elastic IP
+   - Allocate Elastic IP addresss
+   - Allocate
+     - Associate Elastic IP address
+     - tomcat-server  (choose server)
+     - private ip : tomcat-server private IP
+     - associate
+
+> take tomcate-server instance public IP 
+browser: 13.62.74.30:8080
+
+> login tomcat-server with MobaXterm
+ - change the root user name 
+ cmd: vi /etc/hostname
+     - tomcat-server
+
+> reboot server
+cmd: init 6
+resutl :  [root@tomcat-server ~]# 
+
+-----------------------------------------------
+
+# Now install java and tomcat
+> Java
+cmd: yum install java-21* -y
+cmd: java --version
+
+> go inside "/opt" folder and install tomcat package
+> Tomcat
+cmd: wget https://dlcdn.apache.org/tomcat/tomcat-11/v11.0.15/bin/apache-tomcat-11.0.15.tar.gz
+
+> extract file
+cmd: tar -xvzf apache-tomcat-11.0.15.tar.gz
+
+> change name
+cmd: mv apache-tomcat-11.0.15.tar.gz tomcat
+
+cmd: ls 
+result: tomcat 
+
+> Go inside "/tomcat/bin" to start the tomcat service 
+
+cmd: cd /opt/tomcat/bin
+cmd: ls
+
+cmd: ./startup.sh
+result: Now Tomcat started.
+
+> now take "tomcat-server" public IP 
+browser: 13.62.74.30:8080
+ - tomcat server is ready.
+
+> Inside /opt/tomcat  in the "tomcat" folder there is folder webapps there is defaul directory for tomcat
+
+which shows in "tomcat" > Manager Apps
+
+# But tomcat Managers App is not allowing to access it, to fix this 
+> go inside the folder both for manager and host-manager
+ - /opt/tomcat/webapps/manager/META-INF
+
+ - commet the content
+  <!-- <Valve className="org.apache.catalina.valves.RemoteCIDRValve"
+         allow="127.0.0.0/8,::1/128" /> -->
+  - comment this 
+  - then start the tomcat service
+  cmd: cd /opt/tomcat/bin
+  cmd: ./startup.sh
+  result : tomcat started
+
+  # also setup username and password
+  go inside folder "/opt/tomcat/conf"
+
+  cmd: cd /opt/tomcat/conf
+  cmd: ls
+  resutl : tomcat-users.xml
+
+  cmd: vi tomcat-users.xml
+
+  - add file content
+
+  <role rolename="manager-gui" />
+  <role rolename="manager-script" />
+  <role rolename="manager-jmx" />
+  <role rolename="manager-status" />
+  <user username="admin" password="admin"
+        roles="manager-gui,manager-script,manager-jmx,manager-status" />
+
+  <user username="developer" password="developer"
+        roles="manager-script" />
+
+  <user username="tomcat" password="s3cret"
+        roles="manager-gui" />
+
+> login 
+ username : admin
+ password : admin
+
+ > now you can see tomcat default application
+
+
+# so now, we send the war file to tomcat server over the SSH 
+ - send war file one machine to another machine  ( A machine send war file to B machine to run the war file web)
+
+ > Go to Jenkin dashboard > Manage Jenkins > Credentials
+  - stores scoped to jenkins
+    - system  > global > Add Credentials
+      - kind: username and password
+      - username : admin
+      - password : admin
+      - id: tomcat-cred
+      - description: tomcat-cred
+      - create
+
+      - we have created tomcat credentials, and those credentials we give in the job to publish over the ssh.
+
+
+
+# create a Job
+- name : BuildAndDeploy
+- type item : maven project   ( or select from preiveous project)
+- ok
+
+> Post-build Actions  : Deploy war/ear to a container
+  - WAR/EAR  : **/*.war
+  - context path :  -- (not now)
+  - contaner > Add Container : Tomcat 8.x Remote
+    - credentials : tomcat-cred
+    - Tomcat URL : http://13.62.74.30:8080/     (tomcat-server url)
+    - apply + save
+
+    > now "Build Now" job
+
+
+
+# In Project 3 we will discuss about docker we launch one more instance for docker

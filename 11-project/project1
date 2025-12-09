@@ -248,7 +248,11 @@ cd: cd SampleWebApp
   - C:\Program Files\Apache Software Foundation\Tomcat 11.0\conf\tomcat-users 
   - open this "tomcat-users" file in (VSCODE OR NOTPAD), then
   - make some changes in this line
-  <user username="admin" password="admin" roles="manager-gui,manager-script,admin" />
+  <role rolename="manager-script"/>
+<role rolename="manager-gui"/>
+<role rolename="manager-jmx"/>
+<role rolename="manager-status"/>
+<user username="admin" password="admin" roles="manager-script,manager-gui,manager-jmx,manager-status"/>
   - it means, opening doors for tomcat, so jenkins can deploy the war file on tomcat. 
  - open doors from tomcat to jenkins so easily share the .war file from jenkins to tomcat
 

@@ -1,0 +1,77 @@
+# JFrog
+
+Developer   >   gihub   >    Jenkins    < sonar     < JFrog
+(developer)
+
+
+> "Artifacts" means 'end-product', that could be ".war" or ".jar" file
+
+- Artifactory tool that store the 'end-product'
+- There are tow types of tool like "JFrog" and "Nexus" tool which store the 'end-product'
+
+- so we need Artifactory tool.
+
+- why need Artifactory tool 
+  - to delivered the end product to client, or to deployed product on clients Instance server
+  - share link of Artifactory.
+
+  - It acts like a "templates" to develop similar product 
+  - store end-product to Github, JFrog, Nexus
+
+
+# Crete JFrog account, and once creae account, in JFrog server by default it gives 3 repositories
+  1: Local
+  2: Remote
+  3: Virtual
+
+> Default location to store end-product in "local"
+> Also we can store "docker images"
+
+
+# Jfrog.com  > free trial
+
+> Create maven repository in Jfrog
+
+- go to User Menu > quick repository creation 
+  - select package type: maven  > next 
+  - repository prefix : sandyjfrog
+  - create 
+
+  - create token then add to the Jenkins
+    - go to Adminsitration  (tab)  
+    - inside UserManagement > Access Token 
+    - generate token 
+
+    - Description : jenkins-access-tokey  (any-name)
+    - token scope : Admin 
+    - username : admin  (any-name)
+    - generate token 
+
+   (copy token, kept this token to jenkins) 
+   (connect JFrog to Jenkins)
+
+
+> Go to Jenkins > Manage Jenkins 
+  - Plugins : Artifactory (tool installing)   
+  - go back to jenkins
+
+> manage Jenkins > Credentials
+- stores scoped to Jenkins > Global > Add Credentials
+  - new Credentials
+  - kind: Username with password
+  - username : admin 
+  - password : <jfrog-token/password>
+  - ID  : artifact-cred 
+  - Description : artifact-cred 
+  - create 
+
+
+> Add stage to "Jenkinsfile" related to JFrog details, pipeline
+- and the after building job, the .war file automatically store in JFrog
+
+- In Jenkinsfile (ec2-user (developer))
+
+cmd: vi Jenkinsfile
+  - stage build
+  - stage test 
+  - jfrog stage (start from here)
