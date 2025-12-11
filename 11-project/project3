@@ -1,0 +1,379 @@
+# Project 1 and Project 2 continue
+
+# git-server and jenkins-server are proceed  , except tomcat-server
+
+# -----------------------------------------------------------
+
+## Project 3 Start with Docker (git-server > jenkins-server > docker-server)
+# dont need to login in tomcat-server
+
+> go inside jenkins-server, where Build installed
+cmd: cd /var/lib/jenkins/workspace
+
+- see Build results
+BuildAndDeploy  FirstMavenProject
+(just checking build files)
+
+---------------------------------------------------
+
+# Now we have see Docker Deployments , earliar setup is same like (git-server and jenkins-server)
+> istead of tomcat-server, we work on tomcat-container (on docker), so we can reduce the cost,
+> we can have any number of containers
+> we have 1 EC2 instance and 100s of container, so we can reduce the cost
+
+> Prerequisites
+- EC2 instance, docker, tomcat image (docker image, with tomcat- ), Dockerfile (to automate)
+
+- Flow of automation
+ - when developers push the code to the Github,
+ - and jenkins-server will pull that code and job should run and create war file, 
+ - that should get copied and that should send to container (war file send to container automatically), 
+   and with port-mapping we are going to access website
+ - (so entire process we need to automate, so we should see war file from the container) 
+
+
+# First launch EC2 instance 
+ - launch instance
+ - name: docker-server
+ - ami : t3.micro
+ - instance-type: 
+ - key-pair : all_cicd.pem
+ - SG : SG_ALL              # (same SG) 
+ - storage : 8 GiB          # volume size
+ - launch instance
+
+> (tomcat default port is 8080 and, we need to map port with base machine to run web content, (gives any port for base machine) )
+
+
+# Login "docker-server" with MobaXterm to go inside the EC2 instance
+cmd: sudo su -
+
+> change the hostname 
+cmd: vi /etc/hostname
+   - docker-server
+   - :wq!      # save and exit
+   - restart server
+
+cmd: sudo su -       # go as root
+
+> Install docker
+cmd: yum install docker -y
+
+> start docker service
+cmd: service docker start
+
+> see status of docker service
+cmd: service docker status
+
+> enable docker service (even after system restart/reboot)
+cmd: systemctl enable docker
+
+
+# Now pull docker image for tomcat image 
+- it means Java and Tomcat package already installed on that "tomcat image"
+
+> when pull tomcat image, and create container from that image create container and that container have packages 
+  tomcat and java already there, and the mapped port with container port with base machine port
+  cause tomcat already have default port so we need to mapped the with base machine port (any port).
+  
+  then we should able to we web content from the war file
+
+
+# Now pull the tomcat iamge from docker hub
+cmd: docker pull tomcat             # by default it take latest image "tomcat:latest"  
+
+> see installed image 
+cmd: docker images 
+
+> from this tomcat image, we create container 
+cmd: docker run -d --name tomcat-container -p 8081:8080 tomcat
+
+( in detach mode, container name is "tomcat-container", and port mapped with base machine 8081 and container default port is 8080)
+- it will create a container, means container running continuous.
+
+> see created container in detached mode, 
+cmd: docker ps                 # ps means processed container running
+
+
+# Now take docker-server public IP
+browser: <ec2-public-ip>:8081
+
+> if it is showing error like this
+(HTTP Status 404 – Not Found)
+- this issue with default tomcat images, 
+- just go inside the container
+
+cmd: docker exec -it tomcat-container /bin/bash
+- when go inside by default it shows "/usr/local/tomcat#" this path for tomcat iamge path
+- there is default folder "webapps" it contains defaults tomcat default folders
+- when it go inside "webapps" it shows nothing 
+cmd: ls webapp      # nothing to show any folders
+- that is reason in browser nothing to shows of tomcat content
+
+- see folder "webapps.dist/" 
+cmd: ls webapps.dist/
+result : docs  examples  host-manager  manager  ROOT
+- this is kept here only for now,
+
+> then do this, copy from "webapp.dist/" to "webapps"
+cmd: cp -R webapps.dist/* webapps/
+
+> Now run the public IP 
+browser : http://51.21.249.166:8081/ 
+- it shows the tomcat page
+- bust when go inside "Manager Apps" it show (403 Access Denied)
+
+( this is just for testing purpose, DELETE the all of this stuff)
+ - come out from container
+ cmd: exit
+ - stop container and DELETE container
+ cmd: docker stop tomcat-container
+ cmd: docker rm tomcat-container
+
+ -------------------------------------------------------
+
+# We have already tomcat image
+- creat Dockerfile to automate the process, what ever we do manually
+- inside root
+> create Dockerfile 
+cmd: vi Dockerfile
+FROM tomcat:latest
+RUN cp -R /usr/local/tomcat/webapps.dist/* /usr/local/tomcat/webapps
+
+:wq! # save and exit
+
+> From this Dockerfile we create an Image
+- inside root 
+cmd: docker build -t demotomcat .    # (. dot means currunt directory, -t means tag name for image)
+
+> see created image 
+cmd: docker images 
+result : demotomcat   # image
+
+> now create container from that "demotomcat" image 
+cmd: docker run -d --name demotomcat-container -p 8082:8080 demotomcat
+
+> now run the public ip 
+browser : http://51.21.249.166:8082/
+- it open tomcat page
+(this is just for testing, need to automate it)
+
+# ---------------------------------------------------------------------
+
+# Automate the process Pipelines
+- we need "jenkins-server" to "docker-server" to integrate it
+- we have to create username, password, sshd config, to connect "docker-server" to "jenkins-server"
+
+# Inside "docker-server"
+- we need to create a user,password, sshd config, generate ssh key
+
+- 1: create username and passwd
+cmd: useradd dockeradmin
+
+cmd: passwd dockeradmin
+  - new passwd : dockeradmin
+  - re-type passwd: dockeradmin
+
+> there is default group name "docker" when installed docker package (default behaviour) 
+ - add user to that group
+ cmd: usermod -aG docker dockeradmin
+
+> see results
+cmd : cat /etc/group
+result : 
+         docker:x:992:dockeradmin    # this is the group(docker, added username)
+         dockeradmin:x:1001:
+
+> Now dockeradmin can do any operations related to docker without any permissions 
+
+> we need to modify "sshd" configuration
+cmd: vi /etc/ssh/sshd_config               # PasswordAuthentication : yes
+- make it yes
+
+> then reload the sshd_config file
+cmd: service sshd reload
+
+> now those credentials we have to given in the jenkins
+ - go to jenkins
+ - manage jenkins > system     (for machine to machine connection)
+ - Publish over SSH           (jenkis plugin option inside "system")
+   SSH Servers > Add
+   - SSH server
+     - name: docker-host
+     - hostname : <docker-server-private-ip>   # always ec2 instance private ip address
+       (hostname: 172.31.19.158   # this is docker-server privateIP)
+     
+     - Advanced > 
+       - Use password authentication, or use a different key?
+         Passphrase / Password : dockeradmin  
+          - test : Test Configuration   (if showing "success" then it good)
+         - apply + save
+         ( successfully connected with docker-server to jenkins)
+
+#todo: Jenkins Job
+- creat job or select existing job
+  - name: BuildAndDeployContainer
+  - copy from : BuildAndDeploy   (previus job choose)
+  - ok
+    - Git > Github URL : <git-repo>
+    - Branch : main
+    - Goals and options : clean install
+    - Post-build Actions > 
+      Add post-build action : Send build artifacts over SSH
+      (means copying war file over the host manchine automatically by that plugin)
+
+    - SSH Server : choose name : docker-host  (credentials for docker)
+    > Transfer Set:
+      - Source file: webapp/target/*.war
+              (if we choose ready job then take there path where war file installed)
+      - Remove Prefix : webapp/target  # dont want this name         
+      - apply + save
+
+# In docker-server root user, login as created user like "dockeradmin"       
+cmd: su - dockeradmin
+cmd: ls
+result: webapp.war      # is resulting inside dockeradmin
+
+--------------------------------------------------------------
+
+# Inside user "dockeradmin" create a dedicated directory to keep .war file in safe place
+
+> Under /opt directory place Dockerfile and .war file 
+
+// exit from dockeradmin and then create folder as root user 
+> create "docker" folder inside "/opt"
+cmd: mkdir /opt/docker
+cmd: ls 
+result: docker       # docker folder created
+
+> we place "Dockerfile" and ".war" in separate folder 
+> and we are doing operations as a "dockeradmin", and everything keep in "docker" folder
+> so we give full permission to dockeradmin to perform any docker related operations.
+
+cmd: chown -R dockeradmin:dockeradmin docker
+
+  - chown : "change owner", change ownership of files and folders
+  - -R    : "recursive", apply the ownership change to the folder, and eveything inside it (sub-folder + files)
+  - dockeradmin:dockeradmin   : in linux, username is create with same name of group
+  - docker : this is a target folder, "./docker"
+
+  - ultimately, dockeradmin user can do everything in this folder.
+
+> go inside "docker" folder 
+cmd: cd /opt/docker
+
+> see path 
+cmd: pwd
+result: /opt/docker
+
+
+> Go inside Jenkins where job created, change the "Remote Directory", to send the .war file inside "/opt/docker/"
+  folder, 
+  > Transfer Set
+   - Remote Directory : //opt//docker
+   - ok
+     > this will send .war file inside this "docker" folder automatically.   
+     - sometime "/" will ignore, so add double "//" double slash. 
+     - Build Job now
+
+     > Inside folder "/opt/docker" after build job automatically .war file send in this folder
+     result: /opt/docker/webapp.war
+
+
+# Now automate all things like git-server > jenkins-server > docker-server (docker-container) with tomcat image, .war, Dockerfile file inside "/docker" folder
+
+> copy .war file inside "Dockerfile"
+
+> create Dockerfile inside /opt/docker folder  
+
+cmd: vi Dockerfile
+FROM tomcat:latest        # automatically pull image from docker hub
+MAINTAINER Sandeep        # owner of this file
+RUN cp -R /usr/local/tomcat/webapps.dist/* /usr/local/tomcat/webapps   # copy tomcat default folders inside only "tomcat/webapps"
+COPY ./*.war /usr/local/tomcat/webapps       # copy .war file from "/docker" folder to "/tomcat/webapps" folder
+
+:wq!    # save and exit
+
+> From this "Dockerfile" create an Image
+cmd: docker build -t tomcat:v1 .         # create image from current "/docker" directory (.) dot, image name with "tomcat:v1" version 1
+
+> see docker image 
+cmd: docker images 
+result: 
+       REPOSITORY   TAG       IMAGE ID       CREATED          SIZE
+       tomcat       v1        59dcbf245e8f   30 seconds ago   418MB
+
+       - image created from "Dockerfile"
+
+> now create container from this image 
+cmd: docker run -d --name tomcatv1 -p 8081:8080 tomcat:v1 
+
+> after creating conainter, take public IP of "docker-server" ec2 
+browser : http://13.61.142.250:8081/webapp/
+result: tomcat page is running on browser
+- but still "Managers Apps" is not working, so wee add after ":8081/webapss" folder name, to run web content
+
+
+> create another folder to run default base machine port to run the webconten
+cmd: docker run -d --name tomcatv2 -p 80:8080 tomcat:v1
+
+- it created new container on default port 
+browser : http://13.61.142.250/webapp
+- web content is running but still need to add "webapp" folder name,
+
+
+
+#todod -------- this is creating manually we need to automate from Jenkins 
+
+> inside Jenkins job there is option for "Exec command" inside it add docker cmds 
+> GO to job 
+ - Exec command: 
+   - cd /opt/docker;        # go inside directory
+   - docker build -t regapp:v1 .;   # create image from "Dockerfile" which added inside that folder 
+   - docker run -d --name registerapp -p 8082:8080 regapp:v1;  # create container from that image
+   
+   - apply + save
+
+> DELETE older container all at a time 
+cmd: docker stop <container-name>
+cmd: docker container prune    # it will delete all contaiiners
+
+> DELETE older images all at a time 
+cmd: docker image prune -a       # deleting all images
+
+===============
+
+> Now Build Job 
+browser: http://13.61.142.250:8083/webapp/
+- it will create image, and container automatically.
+- verify inside jenkins-server ec2 On MobaXterm > /opt/docker
+- cmd: docker ps 
+- cmd: docker iamges
+- result: both are created and running 
+
+
+> but if we run job again it will throw an error means "Build Unstable" showing
+- cause we can not create same name of the container
+
+> we need to add few other cmds inside Job > Exec command:
+  Exec command:
+  - cd /opt/docker;        # go inside this folder
+  - docker stop registerapp;   # stop existing container
+  - docker rm registerapp;     # remove existing container
+  - docker rmi regapp:v1;      # remove existing image
+  - docker build -t regapp:v1
+  - docker run -d --name registerapp -p 8082:8080 regapp:v1
+
+   - apply + save
+
+   - run build job
+
+   - also add Poll SCM to job to get automate process cicd pipeline
+
+   - run job, the pipeline run automactic
+   # ========================================================================
+
+   (note: docker is not for deployment)
+   (we can make image and push to docker hub repository)
+
+   we can see "Ansible" for deployment properly
