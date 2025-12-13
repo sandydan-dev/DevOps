@@ -118,3 +118,13 @@ cmd: kubectl label nodes <node-ip> myname=saidemy
 result : now pod will create with label and state will be 'ready'
 
 
+# Using "nodeSelector", it does not selecting  a node automatically, it is in the "Pending" state
+  so we can give Pods to node to run the pod 
+
+cmd: kubectl apply -f nodelabel.yml 
+
+
+> Now choose nodes to ru that pod 
+cmd: kubectl label nodes <ip-453-453-453-...> mynode=saidemy 
+
+> this "nodeselect" (label) to choose node manually and run resource file to create containers into pod (given node name)

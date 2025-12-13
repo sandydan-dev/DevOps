@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: addENV
+
+spec:
+  containers:
+    name: myenv  
+    image: ubuntu
+    command: ["/bin/bash", "-c", "while true; do echo 'Adding ENV to container'; sleep 4; done"]
+
+    env:
+      - name: MYENV 
+        value: sandeep

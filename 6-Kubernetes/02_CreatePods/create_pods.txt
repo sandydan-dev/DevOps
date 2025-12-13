@@ -1,0 +1,116 @@
+# Create "Pod" kubernetes object
+  - it will create a container inside Pod, and kubernetes will place a container automatically inside Pod 
+  
+
+# Create Pod Object, it will create automatically container 
+cmd: vi pod1.yml
+------ start script ------
+
+apiVersion: v1       
+kind: Pod
+metadata:
+  name: podDev
+
+spec:
+  containers:
+    name: firstContainer
+    image: ubuntu 
+    command : ["/bin/bash", "-c", "while true; do echo 'Hello Pod', sleep 5; done"] 
+
+------ end script ------
+
+- save and exit = :wq!
+# ============================================================================ #
+# ============================================================================ #
+
+ 
+
+> apply this file on nodes  
+cmd: kubectl apply -f pod1.yml 
+
+> see pod list 
+cmd: kubectl get pods
+or 
+cmd: kubectl get pods -o wide  # show full details of pod 
+
+> show all details abot the pods 
+cmd: kubectl describe pod/<podname>
+
+> show logs which running on containers 
+cmd: kubectl logs -f pod/<pod_name>
+
+# if we have multiple containers inside pod and want to see specific container data 
+cmd: kubectl logs -f <pod_name> -c c00 
+# ============================================================================ #
+# ============================================================================ #
+
+
+# ADD ENV data to container 
+cat pod3.yml
+kind: Pod
+apiVersion: v1
+metadata:
+  name: addENV
+
+spec:
+  containers:
+   -  name: myenv
+      image: ubuntu
+      command: ["/bin/bash", "-c", "while true; do echo 'Added ENV';sleep 3; done;" ]
+      env:
+       -  name: MYNAME
+          value: Sai
+------ end script ------
+# ============================================================================ #
+# ============================================================================ #
+
+> go inside the container and 'echo' env to see value 
+cmd: kubectl exec -it envadd -c c02 -- /bin/bash 
+
+> after go inside the container type cmd to see env value 
+cmd: echo $MYNAME 
+result: Sai 
+
+> without go inside container see ENV data list 
+cmd: kubectl exec -it envadd -- env 
+
+# ============================================================================ #
+# ============================================================================ #
+
+
+# kind: Pod 
+       basic feature, you will get 1 Pod inside having 1 container 
+
+# apiVersion: v1 
+       in camelCase, v1 is fixed version for single container 
+
+# metadata:
+    name: <name-of-object>
+
+    gives details of of the Pod with name 
+
+# spec: 
+        those containers details menstion under "spec"
+
+# containers: 
+    name: c00           // name of the container 
+    image: ubuntu       // name of the image, which used to create container 
+       
+
+
+# Add anotation and description for more describe about Pod 
+
+cmd: vi anotation.yml
+------ start script -------
+apiVersion: v1 
+kind: Pod
+metadata:
+  name: my_annotation
+  annotations:
+    description: our pod details 
+
+spce:
+  containers:
+    - name: c00 
+      image: ubuntu     
+      command: ["/bin/bash", "-c", "while true; do echo 'Added ENV';sleep 3; done;" ]

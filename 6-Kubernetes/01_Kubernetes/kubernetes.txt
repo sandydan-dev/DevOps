@@ -1,3 +1,45 @@
+# Kubernetes    =====
+> It is a container orchestration tool which is 
+  - Auto management of multiple containers running of different machines called (orchestration).
+  - Scalling or auto creattion of replicated containers. 
+  - Healing containers, new container in place of crashed containers.
+  - LoadBalancing, Distributes requests of containers.
+  - Fault Tolarence - (Node|POD|Failuares)
+    if containers or machines were loose so it automatically new machines or container are created.
+  - Rolling updated and Rollback : going forword/back, to next/previous versions.  get next version to oler version.  
+
+
+# Kubernetes Object list 
+- ClusterConfig
+- Pod 
+- ReplicationController  (RC)
+- ReplicatSet            (RS)
+- Deployment
+- Service
+- Volume
+- Persistent Volume 
+- ConfigMap
+- Secret
+- NameSpace
+
+
+# K8S installation and configuration types 
+- Single Master and multiple-workers insatllation like (swarm)
+- Multi Master and multiple-worker insallation 
+
+# K8S "yml" basisc
+ - Name of the file must end with ".yml" or ".yaml"
+ - # hash use to comment lines inside file 
+ - Everything will be in the key and value pairs (key : value)
+ - Nested key also possible 
+   key:
+     key: value 
+     key: value
+
+# ============================================================================ #
+# ============================================================================ #
+      
+
 # Launch EC2 Instance and attached IAM role 
 > from ec2 you will run all kubernetes/EKS cmds
 
@@ -18,6 +60,13 @@
      v                   v                     v
  [ Node 1 ]         [ Node 2 ]            [ Node 3 ]
  (Worker)           (Worker)              (Worker)
+
+
+# Check version of eksctl and kubectl version 
+cmd: eksctl version 
+
+cmd: kubectl version 
+
 
 
 # Now create eks cluster using cmd 
@@ -51,8 +100,10 @@ nodeGroups:              # node group details
   - name: devops-ng      # node group name      
     instanceType: t2.small   # instance type: cpu, and ram uses 
     desiredCapacity: 2       # number of node will create 
-
-// ===== end file 
+:wq!  // save and exit
+# ============================================================================ #
+# ============================================================================ #
+ 
 
 > run this file by cmd 
 cmd: eksctl create cluster -f cluster.yml 
@@ -84,66 +135,7 @@ cmd: eksctl delete cluster -f cluster.yml
 
 > only delete by cmd 
 cmd: eksctl delete cluster --name devops-k8s --region us-east-1
+# ============================================================================ #
+# ============================================================================ #
 
 
-
-# Create Pod Object, it will create automatically container 
-cmd: vi pod1.ym 
-apiVersion: v1
-kind: Pod
-metadata:
-  name: podDev
-
-spec:
-  containers:
-    name: firstContainer
-    image: ubuntu 
-    command : ["/bin/bash", "-c", "while true; do echo 'Hello Pod', sleep 5; done"] 
-
-# ===== end file 
-- save and exit = :wq!
-
-> apply this file on nodes  
-cmd: kubectl apply -f pod1.yml 
-
-> see pod list 
-cmd: kubectl get pods
-or 
-cmd: kubectl get pods -o wide  # show full details of pod 
-
-> show all details abot the pods 
-cmd: kubectl describe pod/<podname>
-
-> show logs which running on containers 
-cmd: kubectl logs -f pod/<pod_name>
-
-# if we have multiple containers inside pod and want to see specific container data 
-cmd: kubectl logs -f <pod_name> -c c00 
-
-
-# ADD ENV data to container 
-cat pod3.yml
-kind: Pod
-apiVersion: v1
-metadata:
-  name: envadd
-
-spec:
-  containers:
-   -  name: c02
-      image: ubuntu
-      command: ["/bin/bash", "-c", "while true; do echo 'Added ENV';sleep 3; done;" ]
-      env:
-       -  name: MYNAME
-          value: Sai
------- end script ------
-
-> go inside the container and 'echo' env to see value 
-cmd: kubectl exec -it envadd -c c02 -- /bin/bash 
-
-> after go inside the container type cmd to see env value 
-cmd: echo $MYNAME 
-result: Sai 
-
-> without go inside container see ENV data list 
-cmd: kubectl exec -it envadd -- env 

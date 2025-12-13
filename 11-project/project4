@@ -1,0 +1,547 @@
+# setup already create 
+
+
+  :-) 
+   |
+   v
+  +----------------+      +----------------+     +------------------------------------------------------+
+  |  Git_Server    |----->|    GitHub      |---->|                      Jenkins_Server                    |
+  |  +----------+  |      |  +----------+  |     |  +------+  +------+  +-------+  +--------+   +--------+  |
+  |  |  Repo    |  |      |  |  Repo    |  |     |  | Git  |  | Java |  | Maven |  | Jenkins|   |  Job   |  |
+  |  +----------+  |      |  +----------+  |     |  +------+  +------+  +-------+  +--------+   +--------+  |
+  +----------------+      +----------------+     +------------------------------------------------------+
+                                                                                 |
+                                                                                 v
+                                                          +------------------------------+
+                                                          |       Ansible_Server         |
+                                                          |  +-----------+  +---------+  |
+                                                          |  | Playbook  |  | Docker  |  |
+                                                          |  +-----------+  +---------+  |
+                                                          |  +-------------------------+ |
+                                                          |  |        Ansible          | |
+                                                          |  +-------------------------+ |
+                                                          +------------------------------+
+                                                                         |
+                                                                         v
+                                                                 +-----------------+
+                                                                 |    DockerHub    |
+                                                                 |   +---------+   |
+                                                                 |   | Image   |   |
+                                                                 |   +---------+   |
+                                                                 +-----------------+
+                                                                         |
+                                                                         v
+  +-----------------------------------------------------------------------------------------------+
+  |                                         Docker_Server                                         |
+  |                                                                                               |
+  |   +------------+        +--------+       +----------------------+      +-------------------+   |
+  |   | Dockerfile | ---->  | Docker |  -->  |   Tomcat Image       | ---> |  Docker Container  |   |
+  |   +------------+        +--------+       +----------------------+      |  +---------------+ |   |
+  |                                                                              |  war file   | |   |
+  |                                                                              +------------+ |   |
+  |                                                                                             |
+  +-----------------------------------------------------------------------------------------------+
+
+
+# ===============================================================================
+
+git-server > github > jenkins-server >  << ansible-server > (connected to docker hub)  << docker-server
+
+
+# with previous setup we add "ansible-server", docker-hub, in between jenkins-server and docker-server 
+
+> when developer push the code to the Github and jenkins will pull that code and send .war file to inside "ansible-server" create docker image which pushed to docker hub and then pull that docker image inside the "docker-server"
+and run the container to see web content.
+
+
+## ================================================================== ##
+
+> Create EC2 Instance for "ansible-server" 
+ 
+  - launch instance 
+  - name: ansible-server 
+  - ami : amazon linux
+  - instance-type: t3.micro
+  - key-pair : all_cicd.pem
+  - SG : SG_ALL
+  - storege: 8 GiB    
+  - launch instance 
+
+  > ansible-server instance is ready.
+
+  > login to "ansible-server" with MobaXterm
+
+
+# change hostname 
+cmd: vi /etc/hostname 
+    - ansible-server 
+
+> reboot server 
+cmd: init 6
+
+> go as root 
+cmd: sudo su -  
+result: [root@ansible-server ~]#
+
+> install ansible package 
+cmd: yum install ansible -y 
+
+> verify ansible version
+cmd: ansible --version
+
+## ================================================================== ##
+
+# we have to connect "docker-server" as ansible node1 (just for understanding)
+ - means, "docker-server" act like node of "ansible-server"
+
+ - we have to create common username and password in both machine    (username & password)
+ - we need to provide sudo privileged to user                        (visudo)
+ - generate public key inside ansible-server, that we need to copy to docker-server machine   (ssh-keygen) 
+ - we have to create inventory file (ansible-server) of docker node  (hosts  as inventory)
+ - modify sshd_config file                                    (/etc/ssh/sshd_config)
+ - reload sshd configuration after modifying              (sservice shhd reload)
+
+> we need to run few cmds in both machines ansible-server and docker-server machines 
+
+ ##    ANSIBLE-SERVER                                              ## DOCKER-SERVER
+
+   cmd: useradd ansadmin                                           useradd ansadmin       (both machine)
+   cmd: passwd ansadmin                                            passwd ansadmin         (both machine)
+ --------------------------------------------------------------------------------------------------------------------
+ > give sudo privileged to both to access as a root 
+    
+     visudo                                                           visudo                  (both machine)
+     ansadmin  ALL=(ALL)       NOPASSWD: ALL                 ansadmin  ALL=(ALL)       NOPASSWD: ALL     (Both machine)
+-------------------------------------------------------------------------------------------------------------------------
+ > modify sshd_config file in both machines 
+
+     vi /etc/ssh/sshd_config                                       vi /etc/ssh/sshd_config
+      (PasswordAuthentication  yes)                                 (PasswordAuthentication  yes)     
+---------------------------------------------------------------------------------------------------------------------     
+ > reload the sshd service in both machine 
+   cmd: service sshd reload                                            sevice sshd service      
+----------------------------------------------------------------------------------------------------------------------
+ > switch to "ansadmin" in both machine 
+  cmd: su - ansadmin                                                    su - ansadmin    
+-------------------------------------------------------------------------------------------------------------------
+ > generate ssh key inside only in "ansible-server"
+ cmd: ssh-keygen
+     - enter, enter, enter   only nothing to do.
+----------------------------------------------------------------------------
+ > copy ssh id from docker-server (node) inside "ansible-server"
+ cmd: ssh-copy-id ansadmin@<node-private-ip>    #   (only ansible-server machine)
+      ssh-copy-id ansadmin@172.31.19.158        # ,,,
+   
+      - now it node user with private ip copy to ansible server 
+      - we setup password-less ssh connection. 
+---------------------------------------------------------------------------------
+ > we need to create inventory file insdie "ansilbe-server" to add node ip address     
+ > as [ansadmin@ansible-server ~]$
+
+    > go inside folder "/etc/ansible"
+    cmd: cd /etc/ansible 
+
+    > create inventory file for "hosts" name file (inside 'ansadmin' user) 
+    cmd: sudo vi hosts 
+         
+         172.31.19.158     # host(node) private ip
+     :wq!    # save and exit
+
+    > Ping the node, each and every node inside "hosts" inventory file 
+    cmd: ansible all -m ping 
+    result: ping : pong
+
+
+    > Now docker-server machine exact act like a ansible node "172.31.19.158" (docker-server ip), act as node inside ansible 
+
+## ================================================================== ##
+
+# Now we need to connect "ansible-server" in jenkins, add credentials in jenkins 
+ - useradmin (ansadmin)
+ - password  (ansadmin) # password actual
+ - ansible private IP (server ip)
+
+ > these 3 add into the jenkins > credentials
+
+ # Go to Jenkins server 
+   - Jenkins dashboard 
+   - manange jenkins > system
+   - Publish over SSH  > add 
+     - name: ansible-host
+     - hostname: 172.31.26.209   (ansible-server private ip)
+       
+       - Advanced 
+         - Use password authentication, or use a different key ?
+         - Passphrase / Password   : ansadmin     # password 
+         - Test Configuration
+            showing "Success" is connection is okay. 
+         - apply + save 
+
+     // > go to Job "BuildAndDeployContainer"
+       
+
+# create a new Job 
+  - name : copy-artifacts-to-ansible 
+  - copy from : BuildAndDeployContainer
+  - ok
+   
+   - Post-build Actions  : Send build artifacts over SSH
+         - SSH Server
+          - name : ansible-host 
+          > Transfer Set
+             - Source files ?
+                webapp/target/*.war
+             - Remove prefix ?
+                webapp/target
+             - Remote directory ?
+                //opt/docker
+             
+             - apply + save 
+
+# inside "ansible-server" machine create dedicated folder  "/opt/docker"         
+# [ansadmin@ansible-server ~]$   inside this 
+cmd: cd /opt 
+cmd: mkdir docker 
+cmd: cd docker 
+  - inside this folder war file should send from jenkins to "ansible-server"
+
+  > change the ownership of the username:group docker 
+  cmd: sudo chown ansadmin:ansadmin docker 
+
+  - verify ownership 
+  cmd: ls -l 
+  result : 
+   total 0
+   drwxr-xr-x. 4 root     root     33 Dec  3 16:42 aws
+   drwxr-xr-x. 2 ansadmin ansadmin  6 Dec 11 19:23 docker
+
+> war file should copy in this location "/opt/docker/"
+> Run/Build the Job "copy-artifacts-to-ansible"
+
+> result :     # war file created from jenkins-server when build the job 
+[ansadmin@ansible-server docker]$ ls
+webapp.war
+
+
+
+# We have to create image from docker file "Dockerfile" and push to docker hub 
+> install docker inside "ansadmin" user ("ansible-server") 
+cmd: sudo yum install docker -y 
+
+> start docker service 
+cmd: sudo service docker start 
+
+> enable docker service 
+cmd: sudo systemctl enable docker 
+
+# inside "/opt/docker/" folder, create "Dockerfile" to build an image and pushed to docker hub 
+cmd: cd /opt/docker 
+
+> Create "Dockerfile"
+cmd: sudo vi Dockerfile 
+FROM tomcat:latest
+MAINTAINER Sandy
+RUN cp -R /usr/local/tomcat/webapps.dist/* /usr/local/tomcat/webapps
+COPY ./*.war /usr/local/tomcat/webapps
+
+:wq!     # save and exit 
+
+# When creating image is throws some error like 
+cmd: docker build -t regapp:v1 .
+result: ERROR: permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: 
+        Get "http://%2Fvar%2Frun%2Fdocker.sock/_ping": dial unix /var/run/docker.sock: connect: permission denied
+
+# So we provide full permission to this path "/var/run/docker.sock"
+
+cmd: sudo chmod 777 /var/run/docker.sock
+
+> Again build an image 
+cmd: docker build -t regapp:v1 .
+result : success 
+
+> Create container from that image 
+cmd: docker run -d --name registerapp -p 8084:8080 regapp:v1
+
+> After creating container take public IP of "ansible-server"
+browser: http://51.20.184.139:8081/webapp/
+result: it will the app content 
+
+         ( this is just for testing )
+         (owr main purpose is create an Image and pushed to docker hub)
+
+         
+
+
+## -----------------------------------------------
+
+# We want to create image automatically not manually with the help of Playbook
+  so playbook will create image from docker file 
+
+> create inventory file "ansible-server" inside the folder "/etc/ansible/hosts"
+  in the "hosts" file create a group "[dockerhost]" like 
+
+cmd: sudo vi /etc/ansible/hosts
+# ----- script start
+
+# docker-server node private IP address with node
+[dockerhost]       # name of the group of node
+172.31.19.158      # private ip of "docker-server" host machine
+
+# this playbook I want to run locally, so we can give "localhost" eighter ansible-server private IP
+[ansible]    # it can give any name (for understanding) group name
+172.31.26.209      # ansible-server private ip
+
+# ansible-server can store .war file also
+
+# ----- script end 
+:wq!       # save and exit
+
+
+# Ping 'dockerhost' group 
+cmd: ansible dockerhost -m ping
+result : success
+
+
+# ping 'ansible' group host (locally)
+cmd: ansible ansible -m ping
+result : UNREACHABLE (error showing)
+
+> to resolve this issue, copy the public key locally also,
+  means, passwordless ssh connection locally
+
+  cmd: ssh-copy-id ansadmin@172.31.26.209
+  result: give password for last time to : ansadmin   (password)
+
+  > now ping the group host 'ansible'
+  cmd: ansible ansible -m ping
+  result: ping: pong
+  
+  > ping 'all' keyword to see both host machine result
+  cmd: ansible all -m ping     # test connection is success or not
+  > now it workig fine both host locally and server machines 
+
+
+# Next step to create docker image from the Dockerfile by plabook
+ > inside "ansible-server" machine  >  to /opt/docker
+cmd: cd /opt/docker
+
+> create a playbook
+
+cmd: vi create_image_regapp.yml
+# ---- start script
+---
+- hosts: ansible                  # target to where playbook should run
+  become: true
+  tasks: 
+   - name: create docker image
+     command: docker build -t regapp:latest .    # use command module to run cmd
+     args:
+      chdir: /opt/docker       # build image to this folder (change directory "chdir")
+
+# ---- end script
+
+:wq!    # save and exit
+
+
+# see first 
+cmd: cat Dockerfile
+
+cmd: cat create_image_regapp.yml
+
+cmd: cat /etc/ansible/hosts
+
+## process:
+   > 'ansible' group name from playbook, should run locally
+   > run command module from the .yml file to build a docker image from current directory
+   > now run playbook to create image
+
+   cmd: ansible-playbook create_image_regapp.yml 
+   
+   result: 
+        ok: [172.31.26.209]
+        172.31.26.209   : ok=2    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+
+   > now verify docker image is created or not
+   cmd: sudo docker images
+   result : image created "regapp:latest"
+
+   > means, from the Dockerfile create a image from playbook automatically.
+
+   # now our main purpose is when docker image created, so that image pushed to docker hub 
+
+    > fist login to docker-hub, create reserved space for docker image file
+    cmd: docker login
+       username: sandeep452
+       password: Sandeep#@77
+
+       result: Login Succeeded
+    
+    # now this image we have to pushed to docker-hub
+      > fist create reserved space 
+      cmd: docker tag regapp:latest sandeep452/regapp:latest   # it create reserved space in docker hub
+
+      > now push this image that reserved space
+      cmd: docker push sandeep452/regapp:latest
+
+      # this process done by manually we need to automate from
+        git-server > github > jenkins-server > << ansible-server > docker-hub > docker-server (pull) 
+        this is the automation process 
+
+
+# Automation        
+        git-server > github > jenkins-server > << ansible-server > docker-hub > docker-server (pull) 
+
+
+> before we do manually 
+  - build docker image
+  - create reserved space docker image in the hub
+  - push docker image to hub
+
+  - so we need to add few cmd in the playbook 
+  cmd: vi create_image_regapp.yml
+
+    > add more task 
+
+     = after 'agrs'
+
+     - name: create tag to push image to dockerhub
+       command: docker tag regapp:latest sandeep452/regapp:latest
+
+     - name: push docker image
+       command: docker push sandeep452/regapp:latest
+
+       :wq! save and exit
+
+   # verify is both docker images are create or not, 
+    - one from Dockerfile and 
+    - second from reserved space image which push to hub
+
+    cmd: docker images 
+    result: regapp
+            sandeep452/regapp:latest
+
+
+#  add this cmd to Jenkin-server to run the playbook inside the job > Exec Command   options
+
+> go to job (any job)     # where actual job running
+  - Exec command:
+    cd //opt//docker;        # first go inside the 'docker' folder
+    ansible-playbook create_image_regapp.yml;      # then run this cmd  
+
+    > apply + save
+
+    > now run the job (build now)
+    result: 
+          - war file created in the ansible-server under /opt/docker 
+          - from the .war file Dockerfile, created an image
+          - then create reserved space inside the docker-hub
+          - then also pushed to docker-hub using ansible playbook
+
+        # varify now, .war file , docker images, docker-hub reserved space and image 
+
+        cmd: docker images
+        result : regapp
+                 sandeep452/regapp:latest
+
+
+✅ CORRECT & CLEAN SOLUTION
+cmd: vi create_image_regapp.yml
+---
+- hosts: ansible                  # target to where playbook should run
+  become: true
+  tasks:
+   - name: create docker image
+     command: docker build -t regapp:latest .    # use command module to run cmd
+     args:
+      chdir: /opt/docker
+
+   - name: Remove old regapp image if exists
+     command: docker rmi sandeep452/regapp:latest
+     ignore_errors: yes
+
+   - name: create tag to push image to dockerhub
+     command: docker tag regapp:latest sandeep452/regapp:latest
+
+   - name: push docker image
+     command: docker push sandeep452/regapp:latest
+
+
+ # it will not created extra images older image removes and create new image    
+
+ # now our next step is
+   > when image pushed to docker-hub from "ansible-server"
+   > then pull that image from "docker-server" 
+     - then create containers from the pulled image, which we pushed from the playbook ("ansible-server")
+
+
+
+  # go to "docker-server" machine 
+  > create container from that image mannually (for testing)
+  cmd: docker run -d --name registerapp -p 8081:8080 sandeep452/regapp:latest
+
+  result: working
+
+
+  # but now we create a playbook inside "ansible-server" machine to run the container of "docker-server" as node
+
+  > see hosts
+  cmd: cat /etc/ansible/hosts
+  result [dockerhost]
+           < docker server private ip >
+         [ansible]
+           <local private ip >
+
+# inside "ansible-server" > folder inside /opt/docker
+ > create a playbook to deploy web content inside the container
+
+ cmd: vi docker_deployment.yml
+ --- 
+ - hosts: dockerhub
+   become: true
+   tasks:
+    - name: create container
+      command: docker run -d --name regiser -p 8081:8080 sandeep452/regapp:latest
+
+ ------------- scrip end 
+
+
+# updated version for container
+cmd: vi docker_deployment.yml
+---
+- hosts: dockerhost
+  become: true
+  tasks:
+    - name: stop existing register container if running
+      command: docker stop register 
+      ignore_errors: yes
+
+    - name: remove existing container
+      command: docker rm register
+      ignore_errors: yes
+
+    - name: delete existing image
+      command: docker rmi regapp:latest  
+ 
+    - name: run a new containers
+      command: docker run -d --name register -p 8081:8080 sandeep452/regapp:latest
+
+   ---------- script end ------------
+
+
+> run this playbook 
+cmd: ansible-playbook docker_deployment.yml
+
+
+# also add this cmd to jenkins job inside 'Exec command' : 
+> Eexc command:          # below all
+  sleep 10
+  ansible-playbook docker_deployment.yml
+
+  > apply + save 
+
+
+# Now whole thing is automatate
+- devloper push the code to github and jenkins will pull that code by poll SCM
+- ansible will create and image from the dockerfile and get .war file from the jenkins create image
+- then ansible nodes get that image from docker hub and docker-server inside the ansible node as docker-server create
+  container and the and run the web content 
