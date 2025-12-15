@@ -1,0 +1,577 @@
+# Project 5 : Kubernetes Deployment
+
+# setup aready create
+ 
+ git-server > github > jenkins-server << ansible-server > docker-server < > kubernetes server
+
+
+
+ 🙂 Developer
+    |
+    | git push
+    v
+┌──────────────────┐
+│    Git Server    │
+│   (Local Repo)   │
+└─────────┬────────┘
+          |
+          v
+┌──────────────────┐
+│     GitHub       │
+│   (Remote Repo)  │
+└─────────┬────────┘
+          |
+          | Webhook trigger
+          v
+┌──────────────────────────────────────────┐
+│            Jenkins Server                 │
+│  Tools / Packages:                        │
+│  - Git                                   │
+│  - Java (JDK)                             │
+│  - Maven (Build Tool)                    │
+│  - Jenkins Job                           │
+│                                          │
+│  CI Steps:                               │
+│  - mvn clean                             │
+│  - mvn compile                           │
+│  - mvn test                              │
+│  - mvn package                           │
+└─────────┬────────────────────────────────┘
+          |
+          | trigger deployment
+          v
+┌──────────────────────────────────────────┐
+│            Ansible Server                 │
+│  Components:                             │
+│  - Ansible Playbook                      │
+│  - Docker                                │
+│                                          │
+│  Actions:                                │
+│  - Build Docker Image                    │
+│  - Push Image                            │
+└─────────┬────────────────────────────────┘
+          |
+          | docker push
+          v
+┌──────────────────┐
+│   DockerHub      │
+│   (Image Repo)   │
+└─────────┬────────┘
+          |
+          | image pull
+          v
+┌──────────────────────────────────────────┐
+│            Kubernetes Server              │
+│  Manifests:                              │
+│  - Deployment Manifest                   │
+│  - Service Manifest                      │
+└─────────┬────────────────────────────────┘
+          |
+          v
+     ┌───────────────┐        ┌───────────────┐
+     │  K8S Node 1   │        │  K8S Node 2   │
+     │  ┌─────────┐ │        │  ┌─────────┐ │
+     │  │  Pod    │ │        │  │  Pod    │ │
+     │  │ Cont    │ │        │  │ Cont    │ │
+     │  │ Cont    │ │        │  │ Cont    │ │
+     │  └─────────┘ │        │  └─────────┘ │
+     └───────┬──────┘        └───────┬──────┘
+             \                         /
+              \                       /
+               v                     v
+               ┌────────────────────┐
+               │   Load Balancer     │
+               └─────────┬──────────┘
+                         |
+                         v
+               ┌────────────────────┐
+               │      Route 53       │
+               │   (DNS Service)     │
+               └────────────────────┘
+
+
+# Code moves from GitHub to Jenkins for Maven build, Ansible handles Docker image creation and deployment, images are
+  stored in DockerHub, Kubernetes deploys pods across nodes, and traffic is routed via Load Balancer and Route53.
+
+
+# ========================================================================================
+
+# Kubernetes deployment
+
+> Instead of docker-server machine, we use kubernetes-server to deploy web content, and kubernetes master having
+  pods and having containers inside pods, 
+
+  from the docker image created the containers, and those k8s nodes connected to LoadBalancer and loadbalancer connected 
+  to the Route53.
+
+For Kubernetes on EC2, open port 6443 for API server, 10250 for kubelet, 30000–32767 for NodePort, plus 22, 80, and 443 for access. Internal cluster traffic should be allowed within the VPC.
+
+# Launch EC2 instance for named with 'kubernetes-workstation', which get the docker image and create pods with containers
+
+  - launch EC2 instance with higher configuration 
+    - name: kubernetes-workstation
+    - ami : amazon linux
+    - instance-type: t2.medium
+    - key-pair:  all_cicd.pem
+    - SG : SG_ALL   (port: 22,80,443, 10250 for kubelet , 30000-32767 for node-port)
+      (we open all ports (All Traffic) )
+    - storage: 25 GiB volume
+    - launch instance  
+
+> Instance created 
+
+  - Go inside 'kubernetes-workstation' instance with MobaXterm
+  - change hostname
+    cmd: vi /etc/hostname
+       kubernetes-workstation
+       :wq!
+  > reboot instance
+    - cmd: init 6
+
+  > Go as root user
+   cmd: sudo su -
+    [root@kubernetes-workstation ~]#
+           
+# Install 'eksctl' and 'kubectl'         
+   ☸️ kubectl – Talk to Kubernetes
+      - think of kubectl as a remote controler for kubernetes
+      - with kubectl we can do: 
+        - Create Pods, Deployment, Services
+        - check running apps,
+        - scale application
+        - view logs and more things
+
+        - without kubectl, you cannot manage or see whats happening in Kubernetes.
+      =======================================================
+
+    🚀 eksctl – Create EKS Cluster Easily    
+       - Create an EKS cluster manually is very complex (VPC, IAM, nodes, security)
+         - but eksctl does everything for you automatically. 
+         cmd: eksctl crate cluster 
+           - this command can do 
+           - Create EKS cluster
+           - Create EC2 worker nodes
+           - Create VPC 
+           - set IAM roles 
+           - connects everything
+
+           - without eksctl, you must do 20-30 manual aws steps
+
+# eksctl is used to create and manage EKS clusters easily, and kubectl is used to deploy and manage applications inside the Kubernetes cluster.           
+
+=======================================================
+
+# optonal not recommended
+cmd: yum install docker -y    # install docker
+cmd: service docker start     # start docker 
+cmd: chkconfig docker on      # enable docker service
+
+
+# # Install 'eksctl' and 'kubectl'         
+  > when install kubectl automatically installed docker
+
+> check eksctl version
+cmd: eksctl version 
+
+> check kubectl version 
+cmd: kubectl version
+
+
+> after installing both package
+> create IAM role and connect with 'kubernetes-workstation' 
+ 
+ # service IAM 
+   - create role
+     - name: eksctl_role
+     - create role
+       
+       - got to instance 'kubernetes-workstation' > instance type
+       - security
+       - Modify IAM role
+         - IAM role : ecksctl_role
+           - Update IAM role
+
+
+# after that setup 
+> create a kubernetes cluster which create default 2 node
+cmd: eksctl create cluster --name devops --region eu-north-1 --node-type t3.small 
+
+   > this cmd will create cluster, it create 2 things
+     > EKS Cluster (Control Plane)
+       - this is kubernetes brain
+       > it includes: 
+         - API server (port 6443)
+         - Scheduler
+         - Controller Manager
+         - etcd (cluster data)
+
+     > Node Group (EC2 Worker Nodes)
+       - these are the machine that actually run your applications
+       - what get created:
+         - EC2 instance of t2.small
+         - auto scaling group
+         - joined the eks cluster automatically 
+         
+         - it runs here
+           - Pods 
+           - containers
+           - your application
+
+
+           ┌────────────────────────┐
+│   EKS Control Plane    │  ← created
+│ (Managed by AWS)       │
+└───────────┬────────────┘
+            |
+            |
+┌────────────────────────┐
+│  EC2 Worker Nodes      │  ← created
+│  (t2.small instances)  │
+│  Pod / Containers      │
+└────────────────────────┘
+
+========================================================================================
+
+# After creating EKS cluster and Nodes group verify nodes
+cmd: kubect get nodes
+result : showing 2 default node group
+
+
+========================================================================================
+
+Imperative  : with the help of command manage infrastructure
+Declarative : with the help of file having script manage instrastructure
+
+========================================================================================
+
+
+          [root@kubernetes-workstation ~]#
+
+> create a file to create Deployment object having docker image
+ - cmd: vi regapp_deployment.yml
+   
+apiVersion: apps/v1          # API version for Deployment (stable version)
+kind: Deployment             # It tell kubernetes, this is Deployment object
+
+metadata:
+  name: myapp-regapp         # Name of the Deployment
+  labels:                    # Labels for identifying this deployment
+    app: regapp              # key-value selection used for selection
+
+spec:
+  replicas: 4                # Number of identical Pods to run 4 pods
+
+  selector:
+    matchLabels:
+      app: regapp            # selector must match with Pod Labels
+
+  template:                  # Pod template, means blueprint for Pod
+    metadata:
+      labels:
+        app: regapp          # label applied to Pods, must match with selector.
+
+    spec:                    # in spec, what do you want in containers
+      containers:
+        - name: regapp               # container name
+          image: sandeep452/regapp   # pulling image from docker hub
+          imagePullPolicy: Always    # alway pull latest image
+          ports:
+            - containerPort: 8080     # port exposed inside the container 
+
+     # -------- script end 
+
+# now create Service object, which connect with Deployemnt objects Labels, and also connected with LoadBalancer
+
+cmd: vi regapp_service.yml
+
+apiVesion: v1
+kind: Service
+metadata:
+  name: myapp-service
+
+spec:
+  selector:
+    app: regapp       # should match with Deployment labels  
+  
+  ports:
+    - port: 8080    # Service port
+      targetPort: 8080    # container port
+
+  type: LoadBalancer     # ⭐ This creates AWS Load Balancer    
+
+# ----------- script end
+
+
+# after creating those to manifest file then 'apply' to create pods having containers
+cmd: kubectl apply -f regapp_deployment.yml
+
+> also service file for deployment object manifest
+cmd: kubectl apply -f regapp_service.yml
+
+
+## after running those cmds it will create pods and container inside the pods
+
+> verify pods
+cmd: kubectl get all
+or
+cmd: kubectl get pods -o wide
+
+
+# take load balancer IP and paste into browser
+browser : <loadbalancerIP>:8080/webapp
+result : see war file web content
+
+> resource will distribute among 4 pods
+
+# Above all things happen manually, we need to automate it
+  > delete pods
+
+# =-=============================================================================
+
+## AUTOMATION
+
+# We need to connect 'ansible-server' to 'kubernetes-workstation'
+ - assumes, kubernetes-workstation is an ansible nodes
+
+    - create a username and password
+    - modify sshd_config 
+    - provide sudo privileged to that user
+    - then copy public key content in the kubernetes-workstation
+    - then reload sshd service
+    - and give nodes private ip address in ansible inventory file
+
+    > so kubernetes-workstation will connected to ansible-server 
+
+# Begin kubernets-workstation, create username and password, and above all things
+
+> create username , passowrd
+cmd: useradd ansadmin
+cmd: passwd ansadmin
+     - password: ansadmin
+     - re-type: ansadmin
+
+> gives sudo priviledged 
+cmd: viduod
+     - below root
+       ansadmin  ALL=(ALL)  NOPASSWD: ALL
+
+> Modify its sshd_config file
+cmd: vi /etc/ssh/sshd_config
+ PasswordAuthentication : yes
+
+> reload sshd service
+cmd: service sshd reload 
+
+# copy ssh-copy-id from the "ansible-server"
+> go to ansible mobaxter
+> take kubernetes-workstation private ip like
+cmd: ssh-copy-id ansadmin@172.31.25.140
+  - this will copy public key to "kubernetes-workstation"
+  - it will ask password for last time 
+  - password : ansadmin
+
+> for testing purpose check it it conncted or not
+  - 'ansible-server'
+  cmd: ssh ansadmin@172.31.25.140
+  result : open connection "kubernetes-workstation"
+          [ansadmin@kubernetes-workstation ~]$
+
+> now its connected, passwordless connection
+cmd: exit
+
+--------------------------------
+
+# create custom inventory file (hosts), we can create "hosts" anywhere
+
+inside it [ansadmin@ansible-server ~]$ pwd
+/home/ansadmin in this directory create 'hosts' means inventory file, file name should be same
+
+> create a group and add private ip 
+cmd: vi hosts
+[kubernetes]   # for node
+172.31.25.140
+
+[ansible]      # for locally
+172.31.26.209
+
+------ end file ------
+
+# when run any playbook it run default 'hosts' file, which is located in "/etc/ansible/hosts" 
+
+# but we can run custom inventory file,
+ > with the ansible adhock command we can add "-i hosts", means it tells ansible take custom inventory file
+
+> lets ping the "kubernetes" host testing
+cmd: ansible -i hosts kubernetes -m ping
+result : 
+     ping: pong 
+
+> ansible host group name
+cmd: ansible -i hosts ansible -m ping
+result : 
+     ping: pong      
+
+
+# To run the kubenetes manifest, we need to create each playbook for each kubernetes manifest
+- like in kuberbenetes have 2 files
+   > regapp_deployment.yml
+   > regapp_service.yml
+
+for this two manifest, create each playbook
+
+# move custome inventory file inside "ansible-server" directory "/opt/docker"
+cmd: mv /home/ansadmin/hosts /opt/docker/     # host will copy to /docker folder
+
+> go inside ansible user (ansadmin)
+[ansadmin@ansible-server docker]$
+  - create each playbook for each kubernetes manifest
+
+  > create playbook for deployment
+  cmd: vi kube_deploy.yml
+  ---
+  - hosts: kubernetes
+    become: true
+    user: root
+    tasks:
+    - name: deploy regapp on kubernetes
+      command: kubectl apply -f regapp_deployment.yml
+------------ script end ----------------
+
+  > crate another playbook for service
+  cmd: vi kube_service.yml
+  ---
+  - hosts: kubernetes
+    become: true
+    user: root
+    tasks:
+    - name: run service on kuberetes for deployment
+      command: kubectl apply -f regapp_service.yml
+
+      -------- script end ---------
+
+
+# add one more cmd to, which login as root user inside the "kubernetes-workstation"
+cmd: vi /etc/ssh/sshd_config
+PermitRootLogin yes           # add this check to workstation of kubernetes server      
+
+:wq!   # save and exit
+
+> then reload the sshd service
+cmd: service sshd reload
+
+# inside ansible-server do as root user for kubernetes-workstation
+cmd: ssh-copy-id root@<kubernetes-private-ip>
+     ssh-copy-id root@172.31.25.140
+     > ask for password, but not set password to root in (kubernetes-workstation)
+     > go inside kubernetes-server with folder ".ssh" folder
+     > set password for root user 
+     cmd: passwd root
+         pass: root 
+
+     > now in node we can manage playbook being root user
+       - thats why we user in playbook like "user: root"    
+
+# now go inside "ansible-server" to run the playbook and create kubernetes pods
+[ansadmin@ansible-server docker]$
+
+- in this server run playbook with custom inventory file
+cmd: ansible-playbook -i hosts kube_deploy.yml
+
+# result: creaetd deployment and service and also loadbalancer to run the container, war file 
+
+
+# Create a Jenkins free style job
+
+go to jenkins dashboard
+- create job
+  - name: deployment_on_kubernetes
+  - ok
+
+ (>> purpose of this job to execute few command for ansible playbook which create kuberntes pods )
+
+ - Post-build Actions: Send build artifacts over SSH
+ 
+     - Exec command
+        ansible-playbook -i /opt/docker/hosts /opt/docker/kube_deploy.yml;
+        ansible-playbook -i /opt/docker/hosts /opt/docker/kube_service.yml;
+
+     - apply + save 
+
+     - then build now the job   
+     - job done
+
+# now make a single deployment playbook to run all manifest
+
+> inside "kube_deploy.yml" playbook file 
+ cmd: vi kube_deploy.yml
+  ---
+  - hosts: kubernetes
+    become: true
+    user: root
+    tasks:
+    - name: deploy regapp on kubernetes
+      command: kubectl apply -f regapp_deployment.yml
+
+    - name: run service on kuberetes for deployment
+      command: kubectl apply -f regapp_service.yml
+
+    - name: update deployment with new pods if image updated to docker hub
+      command: kubectl rollout restart deployment.apps/myapp-regapp
+
+      ------ script end -----
+
+      > this rollout cmd says: 
+         whenenver we push any new image to docker hub, it update existing pods or create new set of pods with the
+         latest image automatically.  
+
+
+     > from jenkins job remove this cmd cause we use only one file kube_deploy.yml
+     remove: ansible-playbook -i /opt/docker/hosts /opt/docker/kube_service.yml;
+
+     - apply + save 
+     - the build now the job
+     result :   pods will created
+==================================================================
+
+## AUTOMATE THE KUBERNETES SERVER        
+
+> change the job name 
+- deployment_on_kubernetes == Regapp_cd_job
+
+# Create a new Job
+ - name: Regapp_ci_job
+ - copy from : copy_artifacts_to_ansible
+ - ok
+
+   - Post-build Actions: Send build artifacts over SSH
+   - SSH Server
+     - ansible-host
+   - Transfer Set
+     - Remote directory : //opt/docker
+     - Exec command
+       cd //opt/docker;
+       ansible-playbook create_image_regapp.yml;  
+
+   - apply + save    
+
+
+> build other project to add inside the "Regapp_cd_job"
+  - apply + save 
+
+
+# automation is successfull
+
+
+# if Nodes group or pods are crashed it will created automatically
+autoscalling and headling are already in Deployment object
+
+
+# how to clean up all connected tools
+> kubernetes
+  - delete Deployment and Service
+  - delete the EKS clusters
+  - terminates all instance at a time
+  - delete elastic IP all
+  - delete role IAM
+  - delete docker hub repository
+  - 
